@@ -1,5 +1,10 @@
 #ifndef LABIRINTOSO_MOTOR_H
 #define LABIRINTOSO_MOTOR_H
-#define TAMANHO_COMANDO 100
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int verificaComando(char *cmd);
 
 #endif
