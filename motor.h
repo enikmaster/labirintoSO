@@ -1,4 +1,5 @@
 #ifndef LABIRINTOSO_MOTOR_H
 #define LABIRINTOSO_MOTOR_H
+#define TAMANHO_COMANDO 100
 
 #endif
