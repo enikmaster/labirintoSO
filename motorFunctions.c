@@ -5,9 +5,19 @@
 #include "motor.h"
 
 char pathDuracao[TAMANHO_PATH];
+char pathMapa1[TAMANHO_PATH];
+char pathMapa2[TAMANHO_PATH];
+char pathMapa3[TAMANHO_PATH];
 
 void definirTempoInicial(Tempo *tempoJogo) {
-
+    FILE *ficheiro;
+    ficheiro = fopen(pathDuracao, "r");
+    if (ficheiro == NULL) {
+        perror("Erro ao abrir o ficheiro %s\n");
+        exit(1);
+    }
+    fscanf(ficheiro, "%d %d %d", &tempoJogo->inscricao, &tempoJogo->duracao, &tempoJogo->decremento);
+    fclose(ficheiro);
 }
 
 int verificaComando(char *comando) {
@@ -85,6 +95,9 @@ int verificaComando(char *comando) {
 
 void pathParaVariaveisAmbiente() {
     strcpy(pathDuracao, getenv("TEMPO_CONFIG"));
+    strcpy(pathMapa1, getenv("MAPA_NIVEL_1.txt"));
+    strcpy(pathMapa2, getenv("MAPA_NIVEL_2.txt"));
+    strcpy(pathMapa3, getenv("MAPA_NIVEL_3.txt"));
     // guarda numa variável o path para o ficheiro
     // depois é preciso abrir o ficheiro e ler o seu conteúdo
     // e guardar na estrutura de dados Tempo
