@@ -1,15 +1,23 @@
 #include "constantes.h"
 #include "motor.h"
 
+
 int main(int argc, char *argv[]) {
 //    initscr();
 //    printw("Hello World !!!");
 //    refresh();
-    char cmdTeste[TAMANHO_COMANDO];
+    int controlo = 0;
+    char comando[TAMANHO_COMANDO];
     do {
         printf("Digite um comando: ");
-        fgets(cmdTeste, sizeof(cmdTeste), stdin);
-    } while (verificaComando(cmdTeste) == 0);
+        fgets(comando, sizeof(comando), stdin);
+        controlo = verificaComando(comando);
+        // switch(controlo) {
+        //     case 1:
+        //         controlo = comandoUsers();
+        //         break;
+        // }
+    } while (controlo == 0);
 //    endwin();
     return 0;
 }
