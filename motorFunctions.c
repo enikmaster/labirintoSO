@@ -1,9 +1,14 @@
 #include <string.h>
 #include <ctype.h>
 
-
 #include "constantes.h"
 #include "motor.h"
+
+char pathDuracao[TAMANHO_PATH];
+
+void definirTempoInicial(Tempo *tempoJogo) {
+
+}
 
 int verificaComando(char *comando) {
     const char listaComandos[][TAMANHO_COMANDO] = {"users", "bots", "bmov", "rbm", "begin", "end"};
@@ -11,6 +16,7 @@ int verificaComando(char *comando) {
     for (int i = 0; i < strlen(comando); ++i) {
         comando[i] = tolower(comando[i]);
     }
+    // comando sem argumentos
     if (strchr(comando, ' ') == NULL) {
         for (int i = 0; i <= strlen((const char *) listaComandos); ++i) {
             if (strcmp(comando, listaComandos[i]) == 0) {
@@ -51,6 +57,7 @@ int verificaComando(char *comando) {
         fflush(stdin);
         return 0;
     }
+    // comando com 1 argumento
     if (strchr(comando, ' ') != NULL) {
         char comandoTemp[TAMANHO_COMANDO];
         char argumentoTemp[TAMANHO_COMANDO];
@@ -77,7 +84,7 @@ int verificaComando(char *comando) {
 }
 
 void pathParaVariaveisAmbiente() {
-    //strcpy(DURACAO, getenv("DURACAO"));
+    strcpy(pathDuracao, getenv("TEMPO_CONFIG"));
     // guarda numa variável o path para o ficheiro
     // depois é preciso abrir o ficheiro e ler o seu conteúdo
     // e guardar na estrutura de dados Tempo

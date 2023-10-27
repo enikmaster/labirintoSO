@@ -6,6 +6,8 @@ int main(int argc, char *argv[]) {
 //    initscr();
 //    printw("Hello World !!!");
 //    refresh();
+    Tempo tempoJogo;
+    definirTempoInicial(&tempoJogo);
     int controlo = 0;
     char comando[TAMANHO_COMANDO];
     do {
