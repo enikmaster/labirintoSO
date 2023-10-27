@@ -2,7 +2,7 @@
 #define LABIRINTOSO_CONSTANTES_H
 
 #define TAMANHO_COMANDO 100
-#define NAMES 50
+#define TAMANHO_NAMES 50
 
 #define MAX_USERS 5
 #define MAX_BOTS 10

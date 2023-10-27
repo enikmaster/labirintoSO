@@ -13,7 +13,7 @@ typedef struct {
 } Posicao;
 typedef struct {
     char pid[50];
-    char username[NAMES];
+    char username[TAMANHO_NAMES];
     char id;
     Posicao posicao;
     struct User *next;
