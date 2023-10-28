@@ -15,7 +15,7 @@ typedef struct {
 //  - User - dados sobre um utilizador
 typedef struct {
     char pid[50];
-    char username[NAMES];
+    char username[TAMANHO_NAMES];
     char identificador;
     Posicao posicao;
     struct User *next;
