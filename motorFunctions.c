@@ -10,14 +10,14 @@ char pathMapa2[TAMANHO_PATH];
 char pathMapa3[TAMANHO_PATH];
 
 void definirTempoInicial(Tempo *tempoJogo) {
-    FILE *ficheiro;
-    ficheiro = fopen(pathDuracao, "r");
-    if (ficheiro == NULL) {
-        perror("Erro ao abrir o ficheiro %s\n");
-        exit(1);
-    }
-    fscanf(ficheiro, "%d %d %d", &tempoJogo->inscricao, &tempoJogo->duracao, &tempoJogo->decremento);
-    fclose(ficheiro);
+    //FILE *ficheiro;
+    //ficheiro = fopen(pathDuracao, "r");
+    //if (ficheiro == NULL) {
+    //    perror("Erro ao abrir o ficheiro %s\n");
+    //    exit(1);
+    //}
+    //fscanf(ficheiro, "%d %d %d", &tempoJogo->inscricao, &tempoJogo->duracao, &tempoJogo->decremento);
+    //fclose(ficheiro);
 }
 
 int verificaComando(char *comando) {
