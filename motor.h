@@ -8,49 +8,56 @@
 
 // ESTRUTURAS
 //  - Posicao - dados sobre a posição de um elemento
-typedef struct {
+typedef struct Posicao Posicao, *pPosicao;
+struct Posicao {
     int x;
     int y;
-    struct Posicao *next;
-} Posicao, *pPosicao;
+    pPosicao next;
+};
 //  - User - dados sobre um utilizador
-typedef struct {
+typedef struct User User, *pUser;
+struct User {
     char pid[50];
     char username[TAMANHO_NAMES];
     char identificador;
-    Posicao posicao;
-    struct User *next;
-} User, *pUser;
+    pPosicao posicao;
+    pUser next;
+};
 //  - Rock - dados sobre uma pedra
-typedef struct {
+typedef struct Rock Rock, *pRock;
+struct Rock {
     char identificador;
-    Posicao posicao;
+    pPosicao posicao;
     int duracao;
-    struct Rock *next;
-} Rock, *pRock;
+    pRock next;
+};
 //  - Block - dados sobre um bloco
-typedef struct {
+typedef struct Block Block, *pBlock;
+struct Block {
     char identificador;
-    Posicao posicao;
+    pPosicao posicao;
     int duracao;
-    struct Block *next;
-} Block, *pBlock;
+    pBlock next;
+};
 //  - Wall - dados sobre uma parede
 typedef struct Wall Wall, *pWall;
 struct Wall {
     char identificador;
-    Posicao posicao;
+    pPosicao posicao;
     pWall next;
 };
 //  - Mapa - dados sobre o mapa
-typedef struct {
+typedef struct Mapa Mapa, *pMapa;
+struct Mapa {
     pPosicao ptrMeta;
     pPosicao ptrInicioHeader;
     //pUser ptrUsersAtivosHeader; // pra fazer get das posições atuais dos users
-    pRock ptrRocksHeader;
-    pBlock ptrBlocksHeader;
-    pWall ptrWallsHeader;
-} Mapa, *pMapa;
+    //pRock ptrRocksHeader;
+    //pBlock ptrBlocksHeader;
+    //pWall ptrWallsHeader;
+    char mapa[MAPA_LINHAS][MAPA_COLUNAS];
+    pMapa next;
+};
 //  - Setup - dados sobre a configuração inicial do jogo
 typedef struct {
     int inscricao;

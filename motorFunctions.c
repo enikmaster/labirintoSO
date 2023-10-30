@@ -63,75 +63,94 @@ int getNumeroLinhas(FILE *ficheiro) {
     return nLinhas;
 }
 
+void preencheMapa(pMapa novo, FILE *ficheiro) {
+    for (int y = 0; y < MAPA_LINHAS; ++y) {
+        for (int x = 0; x < MAPA_COLUNAS; ++x) {
+            char caracter = fgetc(ficheiro);
+            // caracteres a encontrar: 'x', ' ', '\n'
+            if (caracter == '\n') {
+                --x;
+            }
+            if (caracter == 'x') {
+                novo->mapa[y][x] = 'x';
+            }
+            if (caracter == ' ') {
+                novo->mapa[y][x] = ' ';
+                if (y == 0) {
+                    pPosicao novaMeta = malloc(sizeof(Posicao));
+                    if (novaMeta == NULL) {
+                        perror("Erro ao alocar memória para uma posição\n");
+                        free(novaMeta);
+                        fclose(ficheiro);
+                        exit(1);
+                    }
+                    novo->ptrMeta = novaMeta;
+                    novo->ptrMeta->x = x;
+                    novo->ptrMeta->y = y;
+                    novo->ptrMeta->next = NULL;
+                }
+                if (y == MAPA_LINHAS - 1) {
+                    pPosicao thisInicioHeader = novo->ptrInicioHeader;
+                    while (thisInicioHeader != NULL) {
+                        // garante que vai para o fim da lista
+                        thisInicioHeader = thisInicioHeader->next;
+                    }
+                    pPosicao novoInicio = malloc(sizeof(Posicao));
+                    if (novoInicio == NULL) {
+                        perror("Erro ao alocar memória para uma posição\n");
+                        free(novoInicio);
+                        fclose(ficheiro);
+                        exit(1);
+                    }
+                    thisInicioHeader = novoInicio;
+                    thisInicioHeader->x = x;
+                    thisInicioHeader->y = y;
+                    thisInicioHeader->next = NULL;
+                }
+            }
+        }
+    }
+}
+
 void loadMapa(Mapa *mapa, int nivel) {
     FILE *ficheiro;
+    pMapa thisMapa = mapa;
     if (nivel < 1 || nivel > 3) {
         perror("Nível inválido\n");
         exit(1);
     }
-    if (nivel == 1)
-        ficheiro = fopen(pathMapa1, "r");
-    if (nivel == 2)
-        ficheiro = fopen(pathMapa2, "r");
-    if (nivel == 3)
-        ficheiro = fopen(pathMapa3, "r");
-    if (ficheiro == NULL) {
-        perror("Erro ao abrir o ficheiro %s\n");
-        exit(1);
+    for (int i = nivel; i <= MAX_LEVELS; ++i) {
+        while (thisMapa != NULL) {
+            // garante que vai para o fim da lista
+            thisMapa = thisMapa->next;
+        }
+        if (i == 1)
+            ficheiro = fopen(pathMapa1, "r");
+        if (i == 2)
+            ficheiro = fopen(pathMapa2, "r");
+        if (i == 3)
+            ficheiro = fopen(pathMapa3, "r");
+        if (ficheiro == NULL) {
+            perror("Erro ao abrir o ficheiro %s\n");
+            fclose(ficheiro);
+            exit(1);
+        }
+        pMapa novo;
+        novo = malloc(sizeof(Mapa));
+        if (novo == NULL) {
+            perror("Erro ao alocar memória para um mapa\n");
+            free(novo);
+            fclose(ficheiro);
+            exit(1);
+        }
+        thisMapa = novo;
+        novo->ptrMeta = NULL;
+        novo->ptrInicioHeader = NULL;
+        preencheMapa(novo, ficheiro);
+        novo->next = NULL;
+        thisMapa->next = NULL;
+        fclose(ficheiro);
     }
-    int nLinhas = getNumeroLinhas(ficheiro);
-    int x = 1;
-    int y = 1;
-
-    // correr o ficheiro e ler cada caracter
-    // se o caracter for 'x' criar uma parede
-    // se o caracter for ' ' ignorar
-    pWall wallAtual = NULL;
-    pWall wallPrev = NULL;
-    while (y <= nLinhas) {
-        // ler o caracter
-        char caracter = fgetc(ficheiro);
-        if (caracter == 'x') {
-            // criar uma parede
-
-            wallAtual = malloc(sizeof(Wall));
-            if (wallAtual == NULL) {
-                perror("Erro ao alocar memória para uma parede\n");
-                free(wallAtual);
-                fclose(ficheiro);
-                exit(1);
-            }
-            wallAtual->identificador = 'x';
-            wallAtual->posicao.x = x++;
-            wallAtual->posicao.y = y;
-            wallAtual->next = NULL;
-            if (mapa->ptrWallsHeader == NULL) {
-                mapa->ptrWallsHeader = wallAtual;
-                wallPrev = mapa->ptrWallsHeader;
-            } else {
-                wallPrev->next = wallAtual;
-                wallPrev = wallAtual;
-            }
-        }
-        if (caracter == ' ') {
-            if (y == 1) {
-                // criar a posição de meta
-                // TODO: criar a posição de meta
-            }
-            if (y == nLinhas) {
-                // criar uma posição de inicio
-                // adicionar a posição de inicio à lista de posições de inicio
-                // TODO: criar uma posição de inicio
-                // TODO: adicionar a posição de inicio à lista de posições de inicio
-            }
-            ++x;
-        }
-        if (caracter == '\n') {
-            ++y;
-            x = 1;
-        }
-    }
-    fclose(ficheiro);
 }
 
 int verificaComando(char *comando) {

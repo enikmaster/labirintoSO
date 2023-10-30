@@ -1,7 +1,6 @@
 #include "constantes.h"
 #include "motor.h"
 
-
 int main(int argc, char *argv[]) {
 //    initscr();
 //    printw("Hello World !!!");
@@ -16,12 +15,13 @@ int main(int argc, char *argv[]) {
     gameSetup.nivel = 1;
 
     Mapa mapa;
-    mapa.ptrMeta = NULL;
-    mapa.ptrInicioHeader = NULL;
+    mapa.next = NULL;
+    //mapa.ptrMeta = NULL;
+    //mapa.ptrInicioHeader = NULL;
     //mapa.ptrUsersAtivosHeader = NULL;
-    mapa.ptrRocksHeader = NULL;
-    mapa.ptrBlocksHeader = NULL;
-    mapa.ptrWallsHeader = NULL;
+    //mapa.ptrRocksHeader = NULL;
+    //mapa.ptrBlocksHeader = NULL;
+    //mapa.ptrWallsHeader = NULL;
     loadMapa(&mapa, gameSetup.nivel);
     //GameSetup gameSetup;
     //gameSetup.ptrSetup = &setup;
