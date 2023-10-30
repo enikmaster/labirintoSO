@@ -77,7 +77,7 @@ typedef struct {
     //pSetup ptrSetup;
     //pUser ptrUsersAtivosHeader;
     //pUser ptrUsersEsperaHeader;
-    //pMapa ptrMapa;
+    pMapa ptrMapa;
     int usersAtivos;
     int usersEspera;
     int tempoJogo;
@@ -85,6 +85,8 @@ typedef struct {
 } GameSetup;
 
 // funções de sistema
+void pathParaVariaveisAmbiente();
+
 void setGameSetup(GameSetup *);
 
 void loadMapa(Mapa *, int);

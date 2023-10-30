@@ -1,13 +1,14 @@
+#include <string.h>
 #include "constantes.h"
 #include "motor.h"
+
 
 int main(int argc, char *argv[]) {
 //    initscr();
 //    printw("Hello World !!!");
 //    refresh();
-    //Setup setup;
-    //User UsersAtivos;
-    //User UsersEspera;
+
+    pathParaVariaveisAmbiente();
     GameSetup gameSetup;
     gameSetup.usersAtivos = 0;
     gameSetup.usersEspera = 0;
@@ -16,20 +17,8 @@ int main(int argc, char *argv[]) {
 
     Mapa mapa;
     mapa.next = NULL;
-    //mapa.ptrMeta = NULL;
-    //mapa.ptrInicioHeader = NULL;
-    //mapa.ptrUsersAtivosHeader = NULL;
-    //mapa.ptrRocksHeader = NULL;
-    //mapa.ptrBlocksHeader = NULL;
-    //mapa.ptrWallsHeader = NULL;
     loadMapa(&mapa, gameSetup.nivel);
-    //GameSetup gameSetup;
-    //gameSetup.ptrSetup = &setup;
-    //gameSetup.ptrUsersAtivosHeader = &UsersAtivos;
-    //gameSetup.ptrUsersEsperaHeader = &UsersEspera;
-    //gameSetup.ptrMapa = &mapa;
-    //setGameSetup(&gameSetup);
-
+    gameSetup.ptrMapa = &mapa;
     int controlo = 0;
     char comando[TAMANHO_COMANDO];
     do {

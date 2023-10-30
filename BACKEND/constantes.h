@@ -3,7 +3,7 @@
 
 #define TAMANHO_COMANDO 100
 #define TAMANHO_NAMES 50
-#define TAMANHO_PATH 100
+#define TAMANHO_PATH 8000
 #define TAMANHO_CONTEUDO 1000
 
 #define MAX_USERS 5
@@ -19,9 +19,9 @@
 #define CHAR_BLOCK 'B'
 #define CHAR_WALL 'X'
 
-extern char pathGameSetup[TAMANHO_PATH];
-extern char pathMapa1[TAMANHO_PATH];
-extern char pathMapa2[TAMANHO_PATH];
-extern char pathMapa3[TAMANHO_PATH];
+extern char PathGameSetup[TAMANHO_PATH];
+extern char PathMapaUm[TAMANHO_PATH];
+extern char PathMapaDois[TAMANHO_PATH];
+extern char PathMapaTres[TAMANHO_PATH];
 
 #endif

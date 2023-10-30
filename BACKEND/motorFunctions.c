@@ -1,17 +1,28 @@
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 #include <string.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <time.h>
 #include <ctype.h>
+#include <errno.h>
+#include <signal.h>
 
 #include "constantes.h"
 #include "motor.h"
 
-char pathGameSetup[TAMANHO_PATH];
-char pathMapa1[TAMANHO_PATH];
-char pathMapa2[TAMANHO_PATH];
-char pathMapa3[TAMANHO_PATH];
+char PathGameSetup[TAMANHO_PATH];
+char PathMapaUm[TAMANHO_PATH];
+char PathMapaDois[TAMANHO_PATH];
+char PathMapaTres[TAMANHO_PATH];
+
 
 void setGameSetup(GameSetup *gameSetup) {
     FILE *ficheiro;
-    ficheiro = fopen(pathGameSetup, "r");
+    ficheiro = fopen(PathGameSetup, "r");
     if (ficheiro == NULL) {
         perror("Erro ao abrir o ficheiro %s\n");
         exit(1);
@@ -50,17 +61,6 @@ void setGameSetup(GameSetup *gameSetup) {
         }
     }
     fclose(ficheiro);
-}
-
-int getNumeroLinhas(FILE *ficheiro) {
-    int nLinhas = 0;
-    char caracter;
-    while ((caracter = fgetc(ficheiro)) != EOF)
-        if (caracter == '\n')
-            ++nLinhas;
-    if (caracter != '\n' && ftell(ficheiro) > 0)
-        ++nLinhas;
-    return nLinhas;
 }
 
 void preencheMapa(pMapa novo, FILE *ficheiro) {
@@ -119,19 +119,21 @@ void loadMapa(Mapa *mapa, int nivel) {
         perror("Nível inválido\n");
         exit(1);
     }
+
     for (int i = nivel; i <= MAX_LEVELS; ++i) {
         while (thisMapa != NULL) {
             // garante que vai para o fim da lista
             thisMapa = thisMapa->next;
         }
+
         if (i == 1)
-            ficheiro = fopen(pathMapa1, "r");
+            ficheiro = fopen(PathMapaUm, "r");
         if (i == 2)
-            ficheiro = fopen(pathMapa2, "r");
+            ficheiro = fopen(PathMapaDois, "r");
         if (i == 3)
-            ficheiro = fopen(pathMapa3, "r");
+            ficheiro = fopen(PathMapaTres, "r");
         if (ficheiro == NULL) {
-            perror("Erro ao abrir o ficheiro %s\n");
+            perror("Erro ao abrir o ficheiro.\n");
             fclose(ficheiro);
             exit(1);
         }
@@ -227,10 +229,10 @@ int verificaComando(char *comando) {
 }
 
 void pathParaVariaveisAmbiente() {
-    strcpy(pathGameSetup, getenv("GAME_SETUP"));
-    strcpy(pathMapa1, getenv("MAPA_NIVEL_1.txt"));
-    strcpy(pathMapa2, getenv("MAPA_NIVEL_2.txt"));
-    strcpy(pathMapa3, getenv("MAPA_NIVEL_3.txt"));
+    strcpy(PathGameSetup, getenv("GAME_SETUP"));
+    strcpy(PathMapaUm, getenv("PATH_MAPA_UM"));
+    strcpy(PathMapaDois, getenv("PATH_MAPA_DOIS"));
+    strcpy(PathMapaTres, getenv("PATH_MAPA_TRES"));
     // guarda numa variável o path para o ficheiro
     // depois é preciso abrir o ficheiro e ler o seu conteúdo
     // e guardar na estrutura de dados Tempo

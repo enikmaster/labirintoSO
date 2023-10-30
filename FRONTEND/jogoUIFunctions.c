@@ -1,6 +1,5 @@
-#include "constantes.h"
+#include "../BACKEND/constantes.h"
 #include "jogoUI.h"
-
 
 
 int verificaComandoUI(char *comando) {
@@ -58,4 +57,4 @@ int verificaComandoUI(char *comando) {
 }
 
 
-bool checkIfUserAtivo(char *userToMessage) { return false;}
+bool checkIfUserAtivo(char *userToMessage) { return false; }
