@@ -1,10 +1,7 @@
-all: motor jogoUI
-
-motor: motor.c motorFunctions.c
-	gcc -o motor motor.c motorFunctions.c -lpthread -pthread -lncurses
-
-jogoUI: jogoUI.c jogoUIFunctions.c
-	gcc -o jogoUI jogoUI.c jogoUIFunctions.c -lpthread -pthread -lncurses
+all:
+	gcc -o motor BACKEND/motor.c BACKEND/motorFunctions.c -lpthread -pthread -lncurses
+	gcc -o jogoUI FRONTEND/jogoUI.c FRONTEND/jogoUIFunctions.c -lpthread -pthread -lncurses
+	chmod +x backend.sh
 
 clean:
 	rm -f motor jogoUI
