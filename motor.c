@@ -9,6 +9,12 @@ int main(int argc, char *argv[]) {
     //Setup setup;
     //User UsersAtivos;
     //User UsersEspera;
+    GameSetup gameSetup;
+    gameSetup.usersAtivos = 0;
+    gameSetup.usersEspera = 0;
+    gameSetup.tempoJogo = 0;
+    gameSetup.nivel = 1;
+
     Mapa mapa;
     mapa.ptrMeta = NULL;
     mapa.ptrInicioHeader = NULL;
@@ -16,7 +22,7 @@ int main(int argc, char *argv[]) {
     mapa.ptrRocksHeader = NULL;
     mapa.ptrBlocksHeader = NULL;
     mapa.ptrWallsHeader = NULL;
-    loadMapa(&mapa);
+    loadMapa(&mapa, gameSetup.nivel);
     //GameSetup gameSetup;
     //gameSetup.ptrSetup = &setup;
     //gameSetup.ptrUsersAtivosHeader = &UsersAtivos;

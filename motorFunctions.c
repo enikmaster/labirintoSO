@@ -29,16 +29,16 @@ void setGameSetup(GameSetup *gameSetup) {
             } else {
                 switch (++contador) {
                     case 1:
-                        gameSetup->ptrSetup->inscricao = (int) value;
+                        //gameSetup->ptrSetup->inscricao = (int) value;
                         break;
                     case 2:
-                        gameSetup->ptrSetup->duracao = (int) value;
+                        //gameSetup->ptrSetup->duracao = (int) value;
                         break;
                     case 3:
-                        gameSetup->ptrSetup->decremento = (int) value;
+                        //gameSetup->ptrSetup->decremento = (int) value;
                         break;
                     case 4:
-                        gameSetup->ptrSetup->minJogadores = (int) value;
+                        //gameSetup->ptrSetup->minJogadores = (int) value;
                         break;
                     default:
                         contador = 0;
@@ -63,9 +63,18 @@ int getNumeroLinhas(FILE *ficheiro) {
     return nLinhas;
 }
 
-void loadMapa(Mapa *mapa) {
+void loadMapa(Mapa *mapa, int nivel) {
     FILE *ficheiro;
-    ficheiro = fopen(pathMapa1, "r");
+    if (nivel < 1 || nivel > 3) {
+        perror("Nível inválido\n");
+        exit(1);
+    }
+    if (nivel == 1)
+        ficheiro = fopen(pathMapa1, "r");
+    if (nivel == 2)
+        ficheiro = fopen(pathMapa2, "r");
+    if (nivel == 3)
+        ficheiro = fopen(pathMapa3, "r");
     if (ficheiro == NULL) {
         perror("Erro ao abrir o ficheiro %s\n");
         exit(1);

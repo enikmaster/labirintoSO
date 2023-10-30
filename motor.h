@@ -67,10 +67,10 @@ typedef struct {
 //  - GameSetup - estrutura de dados sobre a configuração do jogo
 //  esta informação não passa toda para os clientes
 typedef struct {
-    pSetup ptrSetup;
-    pUser ptrUsersAtivosHeader;
-    pUser ptrUsersEsperaHeader;
-    pMapa ptrMapa;
+    //pSetup ptrSetup;
+    //pUser ptrUsersAtivosHeader;
+    //pUser ptrUsersEsperaHeader;
+    //pMapa ptrMapa;
     int usersAtivos;
     int usersEspera;
     int tempoJogo;
@@ -80,7 +80,7 @@ typedef struct {
 // funções de sistema
 void setGameSetup(GameSetup *);
 
-void loadMapa(Mapa *);
+void loadMapa(Mapa *, int);
 
 int verificaComando(char *);
 
