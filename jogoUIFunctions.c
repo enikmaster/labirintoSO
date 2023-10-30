@@ -14,19 +14,24 @@ int verificaComandoUI(char *comando) {
     if (strchr(comando, ' ') == NULL) {
         for (int i = 0; i <= strlen((const char *) listaComandos); ++i) {
             if (strcmp(comando, listaComandos[i]) == 0) {
-                //switch (i) {
-                //    case 0:
-                //        printf("Comando %s válido\n", comando);
-                //        fflush(stdin);
-                //        return 1;
-                //    case 2:
-                //        printf("Comando %s válido\n", comando);
-                //        fflush(stdin);
-                //        return 0;
-                //}
+                /*switch (i) {
+                    case 0:
+                        printf("Comando %s válido\n", comando);
+                        fflush(stdin);
+                        return 1;
+                    case 2:
+                        printf("Comando %s válido\n", comando);
+                        fflush(stdin);
+                        return 0;
+                }*/
+                if (strcmp(comando, "msg")==0) {
+                    printf("Comando %s inválido\n", comando);
+                    fflush(stdin);
+                    return 0;
+                }
                 printf("Comando %s válido\n", comando);
                 fflush(stdin);
-                return (strcmp(comando, "end") == 0) ? 1 : 0;
+                return (strcmp(comando, "exit") == 0) ? 1 : 0;
             }
         }
         printf("Comando %s inválido\n", comando);
@@ -45,7 +50,7 @@ int verificaComandoUI(char *comando) {
             fflush(stdin);
             return 0;
         }
-        if (strcmp(comandoTemp, "msg") == 0) {
+        if (strcmp(comandoTemp, "msg") == 0 && nArgumentos == 3) {
             if (checkIfUserAtivo(userToMessage)) {}
             printf("Comando %s válido\n", comando);
             fflush(stdin);
