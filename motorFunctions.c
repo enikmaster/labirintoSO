@@ -4,20 +4,125 @@
 #include "constantes.h"
 #include "motor.h"
 
-char pathDuracao[TAMANHO_PATH];
+char pathGameSetup[TAMANHO_PATH];
 char pathMapa1[TAMANHO_PATH];
 char pathMapa2[TAMANHO_PATH];
 char pathMapa3[TAMANHO_PATH];
 
-void definirTempoInicial(Tempo *tempoJogo) {
-    //FILE *ficheiro;
-    //ficheiro = fopen(pathDuracao, "r");
-    //if (ficheiro == NULL) {
-    //    perror("Erro ao abrir o ficheiro %s\n");
-    //    exit(1);
-    //}
-    //fscanf(ficheiro, "%d %d %d", &tempoJogo->inscricao, &tempoJogo->duracao, &tempoJogo->decremento);
-    //fclose(ficheiro);
+void setGameSetup(GameSetup *gameSetup) {
+    FILE *ficheiro;
+    ficheiro = fopen(pathGameSetup, "r");
+    if (ficheiro == NULL) {
+        perror("Erro ao abrir o ficheiro %s\n");
+        exit(1);
+    } else {
+        char conteudo[TAMANHO_CONTEUDO];
+        char *endptr;
+        int contador = 0;
+        long int value;
+        while (fgets(conteudo, sizeof(conteudo), ficheiro) != NULL) {
+            value = strtol(conteudo, &endptr, 10);
+            if (endptr == conteudo || *endptr != '\n' && *endptr != '\0') {
+                contador = 0;
+                perror("Erro ao converter string para inteiro\n");
+                exit(1);
+            } else {
+                switch (++contador) {
+                    case 1:
+                        gameSetup->ptrSetup->inscricao = (int) value;
+                        break;
+                    case 2:
+                        gameSetup->ptrSetup->duracao = (int) value;
+                        break;
+                    case 3:
+                        gameSetup->ptrSetup->decremento = (int) value;
+                        break;
+                    case 4:
+                        gameSetup->ptrSetup->minJogadores = (int) value;
+                        break;
+                    default:
+                        contador = 0;
+                        perror("Erro ao converter string para inteiro\n");
+                        exit(1);
+                }
+
+            }
+        }
+    }
+    fclose(ficheiro);
+}
+
+int getNumeroLinhas(FILE *ficheiro) {
+    int nLinhas = 0;
+    char caracter;
+    while ((caracter = fgetc(ficheiro)) != EOF)
+        if (caracter == '\n')
+            ++nLinhas;
+    if (caracter != '\n' && ftell(ficheiro) > 0)
+        ++nLinhas;
+    return nLinhas;
+}
+
+void loadMapa(Mapa *mapa) {
+    FILE *ficheiro;
+    ficheiro = fopen(pathMapa1, "r");
+    if (ficheiro == NULL) {
+        perror("Erro ao abrir o ficheiro %s\n");
+        exit(1);
+    }
+    int nLinhas = getNumeroLinhas(ficheiro);
+    int x = 1;
+    int y = 1;
+
+    // correr o ficheiro e ler cada caracter
+    // se o caracter for 'x' criar uma parede
+    // se o caracter for ' ' ignorar
+    pWall wallAtual = NULL;
+    pWall wallPrev = NULL;
+    while (y <= nLinhas) {
+        // ler o caracter
+        char caracter = fgetc(ficheiro);
+        if (caracter == 'x') {
+            // criar uma parede
+
+            wallAtual = malloc(sizeof(Wall));
+            if (wallAtual == NULL) {
+                perror("Erro ao alocar memória para uma parede\n");
+                free(wallAtual);
+                fclose(ficheiro);
+                exit(1);
+            }
+            wallAtual->identificador = 'x';
+            wallAtual->posicao.x = x++;
+            wallAtual->posicao.y = y;
+            wallAtual->next = NULL;
+            if (mapa->ptrWallsHeader == NULL) {
+                mapa->ptrWallsHeader = wallAtual;
+                wallPrev = mapa->ptrWallsHeader;
+            } else {
+                wallPrev->next = wallAtual;
+                wallPrev = wallAtual;
+            }
+        }
+        if (caracter == ' ') {
+            if (y == 1) {
+                // criar a posição de meta
+                // TODO: criar a posição de meta
+            }
+            if (y == nLinhas) {
+                // criar uma posição de inicio
+                // adicionar a posição de inicio à lista de posições de inicio
+                // TODO: criar uma posição de inicio
+                // TODO: adicionar a posição de inicio à lista de posições de inicio
+            }
+            ++x;
+        }
+        if (caracter == '\n') {
+            ++y;
+            x = 1;
+        }
+    }
+    fclose(ficheiro);
 }
 
 int verificaComando(char *comando) {
@@ -94,7 +199,7 @@ int verificaComando(char *comando) {
 }
 
 void pathParaVariaveisAmbiente() {
-    strcpy(pathDuracao, getenv("TEMPO_CONFIG"));
+    strcpy(pathGameSetup, getenv("GAME_SETUP"));
     strcpy(pathMapa1, getenv("MAPA_NIVEL_1.txt"));
     strcpy(pathMapa2, getenv("MAPA_NIVEL_2.txt"));
     strcpy(pathMapa3, getenv("MAPA_NIVEL_3.txt"));

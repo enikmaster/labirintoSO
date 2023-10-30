@@ -4,6 +4,7 @@
 #define TAMANHO_COMANDO 100
 #define NAMES 50
 #define TAMANHO_PATH 100
+#define TAMANHO_CONTEUDO 1000
 
 #define MAX_USERS 5
 #define MAX_BOTS 10
@@ -18,6 +19,6 @@
 #define CHAR_BLOCK 'B'
 #define CHAR_WALL 'X'
 
-extern char pathDuracao[TAMANHO_PATH];
+extern char pathGameSetup[TAMANHO_PATH];
 
 #endif

@@ -11,7 +11,8 @@
 typedef struct {
     int x;
     int y;
-} Posicao;
+    struct Posicao *next;
+} Posicao, *pPosicao;
 //  - User - dados sobre um utilizador
 typedef struct {
     char pid[50];
@@ -19,62 +20,67 @@ typedef struct {
     char identificador;
     Posicao posicao;
     struct User *next;
-} User;
+} User, *pUser;
 //  - Rock - dados sobre uma pedra
 typedef struct {
     char identificador;
     Posicao posicao;
     int duracao;
     struct Rock *next;
-} Rock;
+} Rock, *pRock;
 //  - Block - dados sobre um bloco
 typedef struct {
     char identificador;
     Posicao posicao;
     int duracao;
     struct Block *next;
-} Block;
+} Block, *pBlock;
 //  - Wall - dados sobre uma parede
-typedef struct {
+typedef struct Wall Wall, *pWall;
+struct Wall {
     char identificador;
     Posicao posicao;
-    struct Wall *next;
-} Wall;
+    pWall next;
+};
 //  - Mapa - dados sobre o mapa
 typedef struct {
-    Posicao meta;
-    Posicao *inicioHeader;
-    User *usersAtivosHeader; // pra fazer get das posições atuais dos users
-    Rock *rocksHeader;
-    Block *blocksHeader;
-    Wall *wallsHeader;
-} Mapa;
-//  - Tempo - dados sobre o tempo e que é definido pelo administrador num ficheiro
+    pPosicao ptrMeta;
+    pPosicao ptrInicioHeader;
+    //pUser ptrUsersAtivosHeader; // pra fazer get das posições atuais dos users
+    pRock ptrRocksHeader;
+    pBlock ptrBlocksHeader;
+    pWall ptrWallsHeader;
+} Mapa, *pMapa;
+//  - Setup - dados sobre a configuração inicial do jogo
 typedef struct {
     int inscricao;
     int duracao;
     int decremento;
-} Tempo;
+    int minJogadores;
+} Setup, *pSetup;
 //  - Mensagem - estrutura de dados a passar a cada utilizador
 typedef struct {
-    Mapa mapa; // para desenhar o mapa no cliente
+    pMapa ptrMapa; // para desenhar o mapa no cliente
     int tempoJogo;
     int nivel;
 } Mensagem;
 //  - GameSetup - estrutura de dados sobre a configuração do jogo
 //  esta informação não passa toda para os clientes
 typedef struct {
-    User *usersAtivosHeader;
-    User *usersEsperaHeader;
-    Mapa mapa;
-    Tempo tempo;
+    pSetup ptrSetup;
+    pUser ptrUsersAtivosHeader;
+    pUser ptrUsersEsperaHeader;
+    pMapa ptrMapa;
     int usersAtivos;
     int usersEspera;
     int tempoJogo;
     int nivel;
 } GameSetup;
 
-void definirTempoInicial(Tempo *);
+// funções de sistema
+void setGameSetup(GameSetup *);
+
+void loadMapa(Mapa *);
 
 int verificaComando(char *);
 
