@@ -112,7 +112,7 @@ void preencheMapa(pMapa novo, FILE *ficheiro) {
     }
 }
 
-void loadMapa(Mapa *mapa, int nivel) {
+void loadMapa(pMapa mapa, int nivel) {
     FILE *ficheiro;
     pMapa thisMapa = mapa;
     if (nivel < 1 || nivel > 3) {
@@ -155,8 +155,22 @@ void loadMapa(Mapa *mapa, int nivel) {
     }
 }
 
+void desenhaMapa(pMapa mapa) {
+    pMapa thisMapa = mapa;
+    while (thisMapa != NULL) {
+        for (int y = 0; y < MAPA_LINHAS; ++y) {
+            for (int x = 0; x < MAPA_COLUNAS; ++x) {
+                printw("%c", thisMapa->mapa[y][x]);
+            }
+            printw("\n");
+        }
+        thisMapa = thisMapa->next;
+    }
+    refresh();
+}
+
 int verificaComando(char *comando) {
-    const char listaComandos[][TAMANHO_COMANDO] = {"users", "bots", "bmov", "rbm", "begin", "end"};
+    const char listaComandos[][TAMANHO_COMANDO] = {"users", "bots", "bmov", "rbm", "begin", "end", "text-bots"};
     comando[strlen(comando) - 1] = '\0';
     for (int i = 0; i < strlen(comando); ++i) {
         comando[i] = tolower(comando[i]);
@@ -195,6 +209,7 @@ int verificaComando(char *comando) {
                 }*/
                 printf("Comando %s válido\n", comando);
                 fflush(stdin);
+                if (i == 6) return 6;
                 return (strcmp(comando, "end") == 0) ? 1 : 0;
             }
         }
@@ -233,7 +248,24 @@ void pathParaVariaveisAmbiente() {
     strcpy(PathMapaUm, getenv("PATH_MAPA_UM"));
     strcpy(PathMapaDois, getenv("PATH_MAPA_DOIS"));
     strcpy(PathMapaTres, getenv("PATH_MAPA_TRES"));
-    // guarda numa variável o path para o ficheiro
-    // depois é preciso abrir o ficheiro e ler o seu conteúdo
-    // e guardar na estrutura de dados Tempo
+}
+
+void fecharJogo(GameSetup *gameSetup) {
+    while (gameSetup->ptrMapa->next != NULL) {
+        free(gameSetup->ptrMapa->ptrMeta);
+
+        pMapa nextMapa = gameSetup->ptrMapa->next;
+
+        while (gameSetup->ptrMapa->ptrInicioHeader != NULL) {
+            pPosicao nextPosicao = gameSetup->ptrMapa->ptrInicioHeader->next;
+
+            free(gameSetup->ptrMapa->ptrInicioHeader);
+
+            gameSetup->ptrMapa->ptrInicioHeader = nextPosicao;
+        }
+        free(gameSetup->ptrMapa);
+
+        gameSetup->ptrMapa = nextMapa;
+    }
+    free(gameSetup);
 }

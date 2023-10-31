@@ -67,7 +67,7 @@ typedef struct {
 } Setup, *pSetup;
 //  - Mensagem - estrutura de dados a passar a cada utilizador
 typedef struct {
-    pMapa ptrMapa; // para desenhar o mapa no cliente
+    pMapa mapa; // para desenhar o mapa no cliente
     int tempoJogo;
     int nivel;
 } Mensagem;
@@ -89,8 +89,14 @@ void pathParaVariaveisAmbiente();
 
 void setGameSetup(GameSetup *);
 
-void loadMapa(Mapa *, int);
+void loadMapa(pMapa, int);
+
+void testaBots();
+
+void desenhaMapa(Mapa *);
 
 int verificaComando(char *);
+
+void fecharJogo(GameSetup *);
 
 #endif
