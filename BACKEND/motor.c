@@ -1,24 +1,16 @@
-#include <string.h>
 #include "constantes.h"
 #include "motor.h"
 
 
 int main(int argc, char *argv[]) {
-//    initscr();
-//    printw("Hello World !!!");
-//    refresh();
-
     pathParaVariaveisAmbiente();
     GameSetup gameSetup;
     gameSetup.usersAtivos = 0;
     gameSetup.usersEspera = 0;
     gameSetup.tempoJogo = 0;
     gameSetup.nivel = 1;
-
-    Mapa mapa;
-    mapa.next = NULL;
-    loadMapa(&mapa, gameSetup.nivel);
-    gameSetup.ptrMapa = &mapa;
+    gameSetup.ptrMapa = NULL;
+    loadMapa(gameSetup.ptrMapa, gameSetup.nivel);
     int controlo = 0;
     char comando[TAMANHO_COMANDO];
     do {
@@ -30,7 +22,17 @@ int main(int argc, char *argv[]) {
         //         controlo = comandoUsers();
         //         break;
         // }
+//        if (controlo == 6) {
+//            desenhaMapa(gameSetup.ptrMapa);
+//            controlo = 0;
+//        }
+        if (controlo == 6) {
+            testaBots();
+            controlo = 0;
+        }
     } while (controlo == 0);
-//    endwin();
+
+    
+    fecharJogo(&gameSetup);
     return 0;
 }
