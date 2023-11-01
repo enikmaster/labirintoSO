@@ -64,6 +64,7 @@ void setGameSetup(GameSetup *gameSetup) {
 }
 
 void preencheMapa(pMapa novo, FILE *ficheiro) {
+    pPosicao thisInicioHeader = NULL;
     for (int y = 0; y < MAPA_LINHAS; ++y) {
         for (int x = 0; x < MAPA_COLUNAS; ++x) {
             char caracter = fgetc(ficheiro);
@@ -77,7 +78,7 @@ void preencheMapa(pMapa novo, FILE *ficheiro) {
             if (caracter == ' ') {
                 novo->mapa[y][x] = ' ';
                 if (y == 0) {
-                    pPosicao novaMeta = malloc(sizeof(Posicao));
+                    pPosicao novaMeta = (pPosicao) malloc(sizeof(Posicao));
                     if (novaMeta == NULL) {
                         perror("Erro ao alocar memória para uma posição\n");
                         free(novaMeta);
@@ -90,94 +91,90 @@ void preencheMapa(pMapa novo, FILE *ficheiro) {
                     novo->ptrMeta->next = NULL;
                 }
                 if (y == MAPA_LINHAS - 1) {
-                    pPosicao thisInicioHeader = novo->ptrInicioHeader;
-                    while (thisInicioHeader != NULL) {
-                        // garante que vai para o fim da lista
-                        thisInicioHeader = thisInicioHeader->next;
-                    }
-                    pPosicao novoInicio = malloc(sizeof(Posicao));
+                    pPosicao novoInicio = (pPosicao) malloc(sizeof(Posicao));
                     if (novoInicio == NULL) {
                         perror("Erro ao alocar memória para uma posição\n");
                         free(novoInicio);
                         fclose(ficheiro);
                         exit(1);
                     }
-                    thisInicioHeader = novoInicio;
-                    thisInicioHeader->x = x;
-                    thisInicioHeader->y = y;
-                    thisInicioHeader->next = NULL;
+                    novoInicio->next = NULL;
+                    novoInicio->x = x;
+                    novoInicio->y = y;
+                    if (novo->ptrInicioHeader == NULL) {
+                        novo->ptrInicioHeader = novoInicio;
+                        thisInicioHeader = novo->ptrInicioHeader;
+                    } else {
+                        thisInicioHeader->next = novoInicio;
+                        thisInicioHeader = novoInicio;
+                    }
                 }
             }
         }
     }
 }
 
-void loadMapa(pMapa mapa, int nivel) {
+void loadMapa(GameSetup *gameSetup, int nivel) {
     FILE *ficheiro;
-    pMapa thisMapa = mapa;
+    pMapa thisMapa = NULL;
     if (nivel < 1 || nivel > 3) {
         perror("Nível inválido\n");
         exit(1);
     }
 
     for (int i = nivel; i <= MAX_LEVELS; ++i) {
-        while (thisMapa != NULL) {
-            // garante que vai para o fim da lista
-            thisMapa = thisMapa->next;
-        }
-
         if (i == 1)
-            ficheiro = fopen(PathMapaUm, "r");
+            ficheiro = fopen(PathMapaUm/*"BACKEND/MAPA_UM.txt"*/, "r");
         if (i == 2)
-            ficheiro = fopen(PathMapaDois, "r");
+            ficheiro = fopen(PathMapaDois/*"BACKEND/MAPA_DOIS.txt"*/, "r");
         if (i == 3)
-            ficheiro = fopen(PathMapaTres, "r");
+            ficheiro = fopen(PathMapaTres/*"BACKEND/MAPA_TRES.txt"*/, "r");
         if (ficheiro == NULL) {
             perror("Erro ao abrir o ficheiro.\n");
             fclose(ficheiro);
             exit(1);
         }
-        pMapa novo;
-        novo = malloc(sizeof(Mapa));
-        if (novo == NULL) {
+        pMapa novoMapa = (pMapa) malloc(sizeof(Mapa));
+        if (novoMapa == NULL) {
             perror("Erro ao alocar memória para um mapa\n");
-            free(novo);
+            free(novoMapa);
             fclose(ficheiro);
             exit(1);
         }
-        thisMapa = novo;
-        novo->ptrMeta = NULL;
-        novo->ptrInicioHeader = NULL;
-        preencheMapa(novo, ficheiro);
-        novo->next = NULL;
-        thisMapa->next = NULL;
+        novoMapa->ptrMeta = NULL;
+        novoMapa->ptrInicioHeader = NULL;
+        novoMapa->next = NULL;
+        preencheMapa(novoMapa, ficheiro);
+        if (gameSetup->ptrMapa == NULL) {
+            gameSetup->ptrMapa = novoMapa;
+            thisMapa = gameSetup->ptrMapa;
+        } else {
+            thisMapa->next = novoMapa;
+            thisMapa = novoMapa;
+        }
         fclose(ficheiro);
     }
 }
 
-void desenhaMapa(pMapa mapa) {
-    pMapa thisMapa = mapa;
-    while (thisMapa != NULL) {
-        for (int y = 0; y < MAPA_LINHAS; ++y) {
-            for (int x = 0; x < MAPA_COLUNAS; ++x) {
-                printw("%c", thisMapa->mapa[y][x]);
-            }
-            printw("\n");
+void desenhaMapa(char mapa[MAPA_LINHAS][MAPA_COLUNAS]) {
+    for (int y = 0; y < MAPA_LINHAS; ++y) {
+        for (int x = 0; x < MAPA_COLUNAS; ++x) {
+            printf("%c", mapa[y][x]);
         }
-        thisMapa = thisMapa->next;
+        printf("\n");
     }
-    refresh();
 }
 
 int verificaComando(char *comando) {
-    const char listaComandos[][TAMANHO_COMANDO] = {"users", "bots", "bmov", "rbm", "begin", "end", "text-bots"};
+    const char listaComandos[][TAMANHO_COMANDO] = {"users", "bots", "bmov", "rbm", "begin", "end", "test_bot",
+                                                   "test_mapa"};
     comando[strlen(comando) - 1] = '\0';
     for (int i = 0; i < strlen(comando); ++i) {
         comando[i] = tolower(comando[i]);
     }
     // comando sem argumentos
     if (strchr(comando, ' ') == NULL) {
-        for (int i = 0; i <= strlen((const char *) listaComandos); ++i) {
+        for (int i = 0; i < sizeof(listaComandos) / sizeof(listaComandos[0]); ++i) {
             if (strcmp(comando, listaComandos[i]) == 0) {
                 /*switch (i) {
                     case 0:
@@ -209,7 +206,8 @@ int verificaComando(char *comando) {
                 }*/
                 printf("Comando %s válido\n", comando);
                 fflush(stdin);
-                if (i == 6) return 6;
+                if (i == 6) return 8;
+                if (i == 7) return 9;
                 return (strcmp(comando, "end") == 0) ? 1 : 0;
             }
         }
@@ -251,21 +249,17 @@ void pathParaVariaveisAmbiente() {
 }
 
 void fecharJogo(GameSetup *gameSetup) {
-    while (gameSetup->ptrMapa->next != NULL) {
-        free(gameSetup->ptrMapa->ptrMeta);
-
-        pMapa nextMapa = gameSetup->ptrMapa->next;
-
+    pMapa libertaMapa;
+    while (gameSetup->ptrMapa != NULL) {
+        libertaMapa = gameSetup->ptrMapa;
+        pPosicao libertaPosicao;
         while (gameSetup->ptrMapa->ptrInicioHeader != NULL) {
-            pPosicao nextPosicao = gameSetup->ptrMapa->ptrInicioHeader->next;
-
-            free(gameSetup->ptrMapa->ptrInicioHeader);
-
-            gameSetup->ptrMapa->ptrInicioHeader = nextPosicao;
+            libertaPosicao = gameSetup->ptrMapa->ptrInicioHeader;
+            gameSetup->ptrMapa->ptrInicioHeader = gameSetup->ptrMapa->ptrInicioHeader->next;
+            free(libertaPosicao);
         }
-        free(gameSetup->ptrMapa);
-
-        gameSetup->ptrMapa = nextMapa;
+        free(gameSetup->ptrMapa->ptrMeta);
+        gameSetup->ptrMapa = gameSetup->ptrMapa->next;
+        free(libertaMapa);
     }
-    free(gameSetup);
 }

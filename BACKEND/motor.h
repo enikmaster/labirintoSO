@@ -89,11 +89,11 @@ void pathParaVariaveisAmbiente();
 
 void setGameSetup(GameSetup *);
 
-void loadMapa(pMapa, int);
+void loadMapa(GameSetup *, int);
 
 void testaBots();
 
-void desenhaMapa(Mapa *);
+void desenhaMapa(char[MAPA_LINHAS][MAPA_COLUNAS]);
 
 int verificaComando(char *);
 
