@@ -3,10 +3,10 @@
 
 
 
-int verificaComandoUI(char *comando) {
+int verificaComandoUI(char *comando, WINDOW *janelaBaixo) {
     const char listaComandos[][TAMANHO_COMANDO] =
             {"players", "msg", "exit"};
-    comando[strlen(comando) - 1] = '\0';
+    comando[strlen(comando)] = '\0';
     for (int i = 0; i < strlen(comando); ++i) {
         comando[i] = tolower(comando[i]);
     }
@@ -25,16 +25,16 @@ int verificaComandoUI(char *comando) {
                         return 0;
                 }*/
                 if (strcmp(comando, "msg")==0) {
-                    printf("Comando %s inválido\n", comando);
+                    wprintw(janelaBaixo, "\n Comando %s inválido ", comando);
                     fflush(stdin);
                     return 0;
                 }
-                printf("Comando %s válido\n", comando);
+                wprintw(janelaBaixo, "\n Comando %s válido ", comando);
                 fflush(stdin);
                 return (strcmp(comando, "exit") == 0) ? 1 : 0;
             }
         }
-        printf("Comando %s inválido\n", comando);
+        wprintw(janelaBaixo, "\n Comando %s inválido ", comando);
         fflush(stdin);
         return 0;
     }
@@ -46,17 +46,17 @@ int verificaComandoUI(char *comando) {
         char argAux[TAMANHO_COMANDO] = {'\0'};
         int nArgumentos = sscanf(comando, "%s %s %s %s", comandoTemp, userToMessage, msgToSend, argAux);
         if (nArgumentos > 3) {
-            printf("Comando %s inválido\n", comando);
+            wprintw(janelaBaixo, "\n Comando %s inválido ", comando);
             fflush(stdin);
             return 0;
         }
         if (strcmp(comandoTemp, "msg") == 0 && nArgumentos == 3) {
             if (checkIfUserAtivo(userToMessage)) {}
-            printf("Comando %s válido\n", comando);
+            wprintw(janelaBaixo, "\n Comando %s válido ", comando);
             fflush(stdin);
             return 0;
         }
-        printf("Comando %s inválido\n", comando);
+        wprintw(janelaBaixo, "\n Comando %s inválido ", comando);
     }
     fflush(stdin);
     return 0;
@@ -103,26 +103,24 @@ void desenhaMapa(WINDOW *janela, int tipo)
         wborder(janela, '|', '|', '-', '-', '+', '+', '+', '+'); // Desenha uma borda. Nota importante: tudo o que escreverem, devem ter em conta a posição da borda
     }
     refresh(); // necessário para atualizar a janela
-    wrefresh(janela); // necessário para atualizar a janela
+    wrefresh(janela);
 }
 
 void trataTeclado(WINDOW *janelaTopo, WINDOW *janelaBaixo)
 {
-    keypad(janelaTopo, TRUE);       // para ligar as teclas de direção (aplicar à janelaTopo)
-    wmove(janelaTopo, 1, 1);        // posiciona o cursor,visualmente, na posicao 1,1 da janelaTopo
-    //nota a posição é relativa à janelaTopo e não ao ecrã.
-    int tecla = wgetch(janelaTopo); // MUITO importante: o input é feito sobre a janela em questão, neste caso na janelaTopo
-    char comando[100];             // string que vai armazenar o comando
+    keypad(janelaTopo, TRUE);
+    wmove(janelaTopo, 1, 1);
+    int tecla = wgetch(janelaTopo);
+    char comando[20];
 
     while (tecla != 113) // trata as tecla até introduzirem a letra q. O código asci de q é 113
     {
 
-        if (tecla == KEY_UP) // quando o utilizador introduz a seta para cima
+        if (tecla == KEY_UP)
         {
-            desenhaMapa(janelaTopo, 2); // atualiza toda a janela
-            mvwprintw(janelaTopo, 1, 1, "Estou a carregar na tecla UP na posição 1,1 "); // escreve a palavra UP na posição  1,1.
-            //Nota: não escreve na posição 0,0 porque está lá a borda da janela que foi criada anteriormente
-            wrefresh(janelaTopo);// // necessário para atualizar a janelaTopo. Nota: é apenas esta janela que pretendemos atualizar
+            desenhaMapa(janelaTopo, 2);
+            mvwprintw(janelaTopo, 1, 1, "Estou a carregar na tecla UP na posição 1,1 ");
+            wrefresh(janelaTopo);
         }
         else if (tecla == KEY_RIGHT)
         {
@@ -142,23 +140,20 @@ void trataTeclado(WINDOW *janelaTopo, WINDOW *janelaBaixo)
             mvwprintw(janelaTopo, 1, 1, "Estou a carregar na tecla DOWN na posição 1,1");
             wrefresh(janelaTopo);
         }
-        else if (tecla == ' ') // trata a tecla espaço
-        {  // a tecla espaço ativa a janela inferior e tem o scroll ativo
-            //  o wprintw e o wgetstr devem ser utilizados em janelas que tem o scroll ativo.
-            wclear(janelaBaixo);
-            echo(); // habilita a maneira como o utilizador visualiza o que escreve
-            // ou seja volta a ligar o echo para se ver o que se está a escrever
-            wprintw(janelaBaixo, "\n #> "); // utilizada para imprimir.
-            //nota como a janelaBaixo tem o scroll ativo, ele vai imprimindo linha a linha
-            wgetstr(janelaBaixo, comando);  // para receber do teclado uma string na "janelaBaixo" para a variavel comando
-            //wprintw(janelaBaixo, "\n [%s] ", comando);
-
-            if (verificaComandoUI(comando) == 1) return;
-
-            noecho(); //voltar a desabilitar o que o utilizador escreve
-            wrefresh(janelaBaixo); //sempre que se escreve numa janela, tem de se fazer refresh
+        else if (tecla == ' ')
+        {
+            //wclear(janelaBaixo);  queremos scroll? acho que n
+            echo();
+            wprintw(janelaBaixo, "\n #> ");
+            wgetstr(janelaBaixo, comando);
+            noecho();
+            wrefresh(janelaBaixo);
+            if (verificaComandoUI(comando, janelaBaixo) == 1) return;
+            noecho();
+            wrefresh(janelaBaixo);
         }
-        wmove(janelaTopo, 1, 1); // posiciona o cursor (visualmente) na posicao 1,1 da janelaTopo
-        tecla = wgetch(janelaTopo); //espera que o utilizador introduza um inteiro. Importante e como já referido anteriormente introduzir a janela onde queremos receber o input
+        wmove(janelaTopo, 1, 1);
+        wrefresh(janelaTopo);
+        tecla = wgetch(janelaTopo);
     }
 }
