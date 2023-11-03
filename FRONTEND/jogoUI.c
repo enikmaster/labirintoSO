@@ -22,10 +22,6 @@ int main(int argc, char *argv[]) {
     //desenhaMoldura(10,20,6,15);
     //wbkgd(janelaTopo, COLOR_PAIR(4));     // define backgound dos espaço vazio
 
-
-
-
-
     mvprintw(1, 10, "[ Digite um comando ]");  // mensagem fora da janela, na linha 1, coluna 10 do ecrã
     mvprintw(2, 10, "[ space - muda para o foco da janela de baixo / q - sair ]"); // mensagem fora da janela, na linha 2, coluna 10 do ecrã
     WINDOW *janelaTopo = newwin(22, 82, 3, 1);  // Criar janela para a matriz de jogo, tendo os parametro numero de linhas,numero de colunas, posição onde começa a janela  e posição onde termina

@@ -11,18 +11,26 @@ int verificaComandoUI(char *comando, WINDOW *janelaBaixo) {
     char comandoTemp[TAMANHO_COMANDO] = {'\0'};
     char userToMessage[TAMANHO_COMANDO] = {'\0'};
     char msgToSend[TAMANHO_COMANDO] = {'\0'};
-    int nArgumentos = sscanf(comando, "%s %s %s", comandoTemp, userToMessage, msgToSend);
+    if (sscanf(comando, "%s %s", comandoTemp, userToMessage) == 2
+        && strcmp(comandoTemp, "msg") == 0
+        && checkIfUserAtivo(userToMessage)) {
+        char *mensagem_ptr = strchr(strchr(comando, ' ')+1, ' ');
+        if (mensagem_ptr != NULL) {
+            mensagem_ptr++;
+            strcpy(msgToSend, mensagem_ptr);
+            wprintw(janelaBaixo, "\n Comando %s válido ", comando);
+            //wprintw(janelaBaixo, "\n Mensagem: %s  ", msgToSend);
+            fflush(stdin);
+            return 0;
+        }
+    }
 
     if (strcmp(comando, "players") == 0) {
         wprintw(janelaBaixo, "\n Comando %s válido ", comando);
         fflush(stdin);
         return 0;
     }
-    else if (nArgumentos == 3 && strcmp(comandoTemp, "msg") == 0 && checkIfUserAtivo(userToMessage)) {
-            wprintw(janelaBaixo, "\n Comando %s válido ", comando);
-            fflush(stdin);
-            return 0;
-    }
+
     else if (strcmp(comando, "exit") == 0) {
         fflush(stdin);
         return 1;
@@ -60,7 +68,7 @@ void trataTeclado(WINDOW *janelaTopo, WINDOW *janelaBaixo)
     keypad(janelaTopo, TRUE);
     wmove(janelaTopo, 1, 1);
     int tecla = wgetch(janelaTopo);
-    char comando[20];
+    char comando[100];
 
     while (tecla != 113) // trata as tecla até introduzirem a letra q. O código asci de q é 113
     {
