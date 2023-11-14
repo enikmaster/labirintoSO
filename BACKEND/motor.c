@@ -17,7 +17,6 @@ int main(int argc, char *argv[]) {
     if (gameSetup.ptrMapa == NULL) {
         perror("[ERRO] Erro ao carregar o mapa\n");
         exit(-1);
-        // TODO: alterar todos os códigos de erro para -1
     }
     int controlo = 0;
     char comando[TAMANHO_COMANDO];

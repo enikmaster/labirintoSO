@@ -315,7 +315,6 @@ void testarBot() {
                 printf("Recebi: %s", dadosDoBot);
 
         }
-        // TODO: fazer o encerramento do bot
         waitpid(pidBot, &status, 0);
         printf("\nEncerramos o bot!\n");
         close(fd[0]);
