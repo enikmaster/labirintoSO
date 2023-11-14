@@ -313,7 +313,6 @@ void testarBot() {
             }
             if (strlen(dadosDoBot) > 5 && pidBot != -1)
                 printf("Recebi: %s", dadosDoBot);
-
         }
         waitpid(pidBot, &status, 0);
         printf("\nEncerramos o bot!\n");
