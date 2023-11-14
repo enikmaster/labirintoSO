@@ -3,16 +3,28 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <signal.h>
 #include <ncurses.h>
+#include <string.h>
+#include <ctype.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
+extern pid_t pidBot;
 
 // ESTRUTURAS
-//  - Posicao - dados sobre a posição de um elemento
-typedef struct Posicao Posicao, *pPosicao;
-struct Posicao {
+//  - Mensagem - estrutura de dados a passar a cada utilizador
+typedef struct {
+    char mapa[MAPA_LINHAS][MAPA_COLUNAS]; // para desenhar o mapa no cliente
+    int tempoJogo;
+    int nivel;
+} Mensagem;
+//  - Position - dados sobre a posição de um elemento
+typedef struct Position Position, *pPosition;
+struct Position {
     int x;
     int y;
-    pPosicao next;
+    pPosition next;
 };
 //  - User - dados sobre um utilizador
 typedef struct User User, *pUser;
@@ -20,14 +32,14 @@ struct User {
     char pid[50];
     char username[TAMANHO_NAMES];
     char identificador;
-    pPosicao posicao;
+    pPosition position;
     pUser next;
 };
 //  - Rock - dados sobre uma pedra
 typedef struct Rock Rock, *pRock;
 struct Rock {
     char identificador;
-    pPosicao posicao;
+    pPosition position;
     int duracao;
     pRock next;
 };
@@ -35,7 +47,7 @@ struct Rock {
 typedef struct Block Block, *pBlock;
 struct Block {
     char identificador;
-    pPosicao posicao;
+    pPosition position;
     int duracao;
     pBlock next;
 };
@@ -43,41 +55,43 @@ struct Block {
 typedef struct Wall Wall, *pWall;
 struct Wall {
     char identificador;
-    pPosicao posicao;
+    pPosition position;
     pWall next;
 };
 //  - Mapa - dados sobre o mapa
-typedef struct Mapa Mapa, *pMapa;
-struct Mapa {
-    pPosicao ptrMeta;
-    pPosicao ptrInicioHeader;
-    //pUser ptrUsersAtivosHeader; // pra fazer get das posições atuais dos users
+typedef struct Map Map, *pMap;
+struct Map {
+    pPosition ptrMeta;
+    pPosition ptrInicioHeader;
+    //pUser ptrUsersAtivosHeader; // em aberto porque ja existe no gameSetup
     //pRock ptrRocksHeader;
     //pBlock ptrBlocksHeader;
-    //pWall ptrWallsHeader;
+    //pWall ptrWallsHeader; // em aberto
     char mapa[MAPA_LINHAS][MAPA_COLUNAS];
-    pMapa next;
+    pMap next;
+};
+//  - Bot - dados sobre um bot
+typedef struct Bot Bot, *pBot;
+struct Bot {
+    int pid;
+    pBot next;
 };
 //  - Setup - dados sobre a configuração inicial do jogo
-typedef struct {
+typedef struct Setup Setup, *pSetup;
+struct Setup {
     int inscricao;
     int duracao;
     int decremento;
     int minJogadores;
-} Setup, *pSetup;
-//  - Mensagem - estrutura de dados a passar a cada utilizador
-typedef struct {
-    pMapa mapa; // para desenhar o mapa no cliente
-    int tempoJogo;
-    int nivel;
-} Mensagem;
+};
 //  - GameSetup - estrutura de dados sobre a configuração do jogo
 //  esta informação não passa toda para os clientes
 typedef struct {
-    //pSetup ptrSetup;
+    pSetup ptrSetup;
     //pUser ptrUsersAtivosHeader;
     //pUser ptrUsersEsperaHeader;
-    pMapa ptrMapa;
+    //pBot ptrBotsHeader;
+    pMap ptrMapa;
     int usersAtivos;
     int usersEspera;
     int tempoJogo;
@@ -91,6 +105,8 @@ void setGameSetup(GameSetup *);
 
 void loadMapa(GameSetup *, int);
 
+void sinalizaBot(int, siginfo_t *, void *);
+
 void testaBots();
 
 void desenhaMapa(char[MAPA_LINHAS][MAPA_COLUNAS]);
@@ -98,5 +114,7 @@ void desenhaMapa(char[MAPA_LINHAS][MAPA_COLUNAS]);
 int verificaComando(char *);
 
 void fecharJogo(GameSetup *);
+
+void testarBot();
 
 #endif

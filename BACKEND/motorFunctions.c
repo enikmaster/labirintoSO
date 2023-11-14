@@ -1,16 +1,3 @@
-#include <stdio.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
-#include <string.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <time.h>
-#include <ctype.h>
-#include <errno.h>
-#include <signal.h>
-
 #include "constantes.h"
 #include "motor.h"
 
@@ -19,42 +6,53 @@ char PathMapaUm[TAMANHO_PATH];
 char PathMapaDois[TAMANHO_PATH];
 char PathMapaTres[TAMANHO_PATH];
 
+void sinalizaBot(int sig, siginfo_t *info, void *context) {
+    union sigval value;
+    if (sigqueue(pidBot, sig, value) == -1) {
+        perror("Não foi possivel enviar o sinal e tem o erro: ");
+        return;
+    }
+    pidBot = -1;
+}
 
 void setGameSetup(GameSetup *gameSetup) {
     FILE *ficheiro;
     ficheiro = fopen(PathGameSetup, "r");
+    // descomentar para debugging
+    //ficheiro = fopen("BACKEND/GAME_SETUP", "r");
     if (ficheiro == NULL) {
-        perror("Erro ao abrir o ficheiro %s\n");
-        exit(1);
+        perror("[ERRO] Erro ao abrir o ficheiro %s\n");
+        exit(-1);
     } else {
         char conteudo[TAMANHO_CONTEUDO];
         char *endptr;
         int contador = 0;
         long int value;
+        gameSetup->ptrSetup = malloc(sizeof(Setup));
         while (fgets(conteudo, sizeof(conteudo), ficheiro) != NULL) {
             value = strtol(conteudo, &endptr, 10);
             if (endptr == conteudo || *endptr != '\n' && *endptr != '\0') {
                 contador = 0;
-                perror("Erro ao converter string para inteiro\n");
-                exit(1);
+                perror("[ERRO] Erro ao converter string para inteiro\n");
+                exit(-1);
             } else {
                 switch (++contador) {
                     case 1:
-                        //gameSetup->ptrSetup->inscricao = (int) value;
+                        gameSetup->ptrSetup->inscricao = (int) value;
                         break;
                     case 2:
-                        //gameSetup->ptrSetup->duracao = (int) value;
+                        gameSetup->ptrSetup->duracao = (int) value;
                         break;
                     case 3:
-                        //gameSetup->ptrSetup->decremento = (int) value;
+                        gameSetup->ptrSetup->decremento = (int) value;
                         break;
                     case 4:
-                        //gameSetup->ptrSetup->minJogadores = (int) value;
+                        gameSetup->ptrSetup->minJogadores = (int) value;
                         break;
                     default:
                         contador = 0;
-                        perror("Erro ao converter string para inteiro\n");
-                        exit(1);
+                        perror("[ERRO] Erro ao converter string para inteiro\n");
+                        exit(-1);
                 }
 
             }
@@ -63,8 +61,8 @@ void setGameSetup(GameSetup *gameSetup) {
     fclose(ficheiro);
 }
 
-void preencheMapa(pMapa novo, FILE *ficheiro) {
-    pPosicao thisInicioHeader = NULL;
+void preencheMapa(pMap novo, FILE *ficheiro) {
+    pPosition thisInicioHeader = NULL;
     for (int y = 0; y < MAPA_LINHAS; ++y) {
         for (int x = 0; x < MAPA_COLUNAS; ++x) {
             char caracter = fgetc(ficheiro);
@@ -78,12 +76,12 @@ void preencheMapa(pMapa novo, FILE *ficheiro) {
             if (caracter == ' ') {
                 novo->mapa[y][x] = ' ';
                 if (y == 0) {
-                    pPosicao novaMeta = (pPosicao) malloc(sizeof(Posicao));
+                    pPosition novaMeta = (pPosition) malloc(sizeof(Position));
                     if (novaMeta == NULL) {
-                        perror("Erro ao alocar memória para uma posição\n");
+                        perror("[ERRO] Erro ao alocar memória para uma posição\n");
                         free(novaMeta);
                         fclose(ficheiro);
-                        exit(1);
+                        exit(-1);
                     }
                     novo->ptrMeta = novaMeta;
                     novo->ptrMeta->x = x;
@@ -91,12 +89,12 @@ void preencheMapa(pMapa novo, FILE *ficheiro) {
                     novo->ptrMeta->next = NULL;
                 }
                 if (y == MAPA_LINHAS - 1) {
-                    pPosicao novoInicio = (pPosicao) malloc(sizeof(Posicao));
+                    pPosition novoInicio = (pPosition) malloc(sizeof(Position));
                     if (novoInicio == NULL) {
-                        perror("Erro ao alocar memória para uma posição\n");
+                        perror("[ERRO] Erro ao alocar memória para uma posição\n");
                         free(novoInicio);
                         fclose(ficheiro);
-                        exit(1);
+                        exit(-1);
                     }
                     novoInicio->next = NULL;
                     novoInicio->x = x;
@@ -116,30 +114,39 @@ void preencheMapa(pMapa novo, FILE *ficheiro) {
 
 void loadMapa(GameSetup *gameSetup, int nivel) {
     FILE *ficheiro;
-    pMapa thisMapa = NULL;
+    pMap thisMapa = NULL;
     if (nivel < 1 || nivel > 3) {
-        perror("Nível inválido\n");
-        exit(1);
+        perror("[ERRO] Nível inválido\n");
+        exit(-1);
     }
 
     for (int i = nivel; i <= MAX_LEVELS; ++i) {
-        if (i == 1)
-            ficheiro = fopen(PathMapaUm/*"BACKEND/MAPA_UM.txt"*/, "r");
-        if (i == 2)
-            ficheiro = fopen(PathMapaDois/*"BACKEND/MAPA_DOIS.txt"*/, "r");
-        if (i == 3)
-            ficheiro = fopen(PathMapaTres/*"BACKEND/MAPA_TRES.txt"*/, "r");
-        if (ficheiro == NULL) {
-            perror("Erro ao abrir o ficheiro.\n");
-            fclose(ficheiro);
-            exit(1);
+        if (i == 1) {
+            ficheiro = fopen(PathMapaUm, "r");
+            // descomentar para debugging
+            //ficheiro = fopen("BACKEND/MAPA_UM.txt", "r");
         }
-        pMapa novoMapa = (pMapa) malloc(sizeof(Mapa));
+        if (i == 2) {
+            ficheiro = fopen(PathMapaDois, "r");
+            // descomentar para debugging
+            //ficheiro = fopen("BACKEND/MAPA_DOIS.txt", "r");
+        }
+        if (i == 3) {
+            ficheiro = fopen(PathMapaTres, "r");
+            // descomentar para debugging
+            //ficheiro = fopen("BACKEND/MAPA_TRES.txt", "r");
+        }
+        if (ficheiro == NULL) {
+            perror("[ERRO] Erro ao abrir o ficheiro.\n");
+            fclose(ficheiro);
+            exit(-1);
+        }
+        pMap novoMapa = (pMap) malloc(sizeof(Map));
         if (novoMapa == NULL) {
-            perror("Erro ao alocar memória para um mapa\n");
+            perror("[ERRO] Erro ao alocar memória para um mapa\n");
             free(novoMapa);
             fclose(ficheiro);
-            exit(1);
+            exit(-1);
         }
         novoMapa->ptrMeta = NULL;
         novoMapa->ptrInicioHeader = NULL;
@@ -157,6 +164,8 @@ void loadMapa(GameSetup *gameSetup, int nivel) {
 }
 
 void desenhaMapa(char mapa[MAPA_LINHAS][MAPA_COLUNAS]) {
+    system("clear");
+    //printf("\e[H\e[2J\e[3J");
     for (int y = 0; y < MAPA_LINHAS; ++y) {
         for (int x = 0; x < MAPA_COLUNAS; ++x) {
             printf("%c", mapa[y][x]);
@@ -249,10 +258,10 @@ void pathParaVariaveisAmbiente() {
 }
 
 void fecharJogo(GameSetup *gameSetup) {
-    pMapa libertaMapa;
+    pMap libertaMapa;
     while (gameSetup->ptrMapa != NULL) {
         libertaMapa = gameSetup->ptrMapa;
-        pPosicao libertaPosicao;
+        pPosition libertaPosicao;
         while (gameSetup->ptrMapa->ptrInicioHeader != NULL) {
             libertaPosicao = gameSetup->ptrMapa->ptrInicioHeader;
             gameSetup->ptrMapa->ptrInicioHeader = gameSetup->ptrMapa->ptrInicioHeader->next;
@@ -261,5 +270,54 @@ void fecharJogo(GameSetup *gameSetup) {
         free(gameSetup->ptrMapa->ptrMeta);
         gameSetup->ptrMapa = gameSetup->ptrMapa->next;
         free(libertaMapa);
+    }
+    free(gameSetup->ptrSetup);
+}
+
+void testarBot() {
+    int fd[2], status;
+
+    if (pipe(fd) == -1) {
+        printf("[ERRO] Erro na tentativa de lançamento do bot\n");
+        exit(-1);
+    }
+    pidBot = fork();
+    if (pidBot == 0) {
+        // ações do filho (bot)
+        close(STDOUT_FILENO);
+        dup(fd[1]);
+        close(fd[1]);
+        close(fd[0]);
+        if (execl("bot", "bot", "5", "10", NULL) == -1) {
+            perror("[ERRO] Erro a executar bot! E tem o erro: ");
+            printf("\n");
+            pidBot = -1;
+            exit(-1);
+        }
+    } else if (pidBot > 0) {
+
+        struct sigaction sac = {0};
+        sac.sa_sigaction = sinalizaBot;
+        if (sigaction(SIGINT, &sac, NULL) == -1) {
+            perror("Erro no sigaction! Tem o erro: ");
+            printf("\n");
+        }
+        while (pidBot != -1) {
+            char dadosDoBot[50];
+            setbuf(stdout, NULL);
+            close(fd[1]);
+            memset(dadosDoBot, 0, sizeof(dadosDoBot));
+            if (read(fd[0], &dadosDoBot, sizeof(dadosDoBot)) == -1) {
+                perror("Erro a ler com o erro: ");
+                printf("\n");
+            }
+            if (strlen(dadosDoBot) > 5 && pidBot != -1)
+                printf("Recebi: %s", dadosDoBot);
+
+        }
+        // TODO: fazer o encerramento do bot
+        waitpid(pidBot, &status, 0);
+        printf("\nEncerramos o bot!\n");
+        close(fd[0]);
     }
 }
