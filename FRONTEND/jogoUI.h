@@ -8,12 +8,12 @@
 
 #include <ncurses.h>
 
-void desenhaMapa(WINDOW *janela, int tipo);
-void trataTeclado(WINDOW *janelaTopo, WINDOW *janelaBaixo);
+void desenhaMapa(WINDOW *, int);
 
-int verificaComandoUI(char *comando, WINDOW *janela);
-bool checkIfUserAtivo(char *comandoTemp);
+void trataTeclado(WINDOW *, WINDOW *);
 
+int verificaComandoUI(char *, WINDOW *);
 
+bool checkIfUserAtivo(char *);
 
 #endif

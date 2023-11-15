@@ -1,7 +1,6 @@
 #include "../BACKEND/constantes.h"
 #include "jogoUI.h"
 
-
 int main(int argc, char *argv[]) {
 
     int controlo = 0;
@@ -23,14 +22,16 @@ int main(int argc, char *argv[]) {
     //wbkgd(janelaTopo, COLOR_PAIR(4));     // define backgound dos espaço vazio
 
     mvprintw(1, 10, "[ Digite um comando ]");  // mensagem fora da janela, na linha 1, coluna 10 do ecrã
-    mvprintw(2, 10, "[ space - muda para o foco da janela de baixo / q - sair ]"); // mensagem fora da janela, na linha 2, coluna 10 do ecrã
-    WINDOW *janelaTopo = newwin(22, 82, 3, 1);  // Criar janela para a matriz de jogo, tendo os parametro numero de linhas,numero de colunas, posição onde começa a janela  e posição onde termina
+    mvprintw(2, 10,
+             "[ space - muda para o foco da janela de baixo / exit - sair ]"); // mensagem fora da janela, na linha 2, coluna 10 do ecrã
+    WINDOW *janelaTopo = newwin(22, 82, 3,
+                                1);  // Criar janela para a matriz de jogo, tendo os parametro numero de linhas,numero de colunas, posição onde começa a janela  e posição onde termina
     WINDOW *janelaBaixo = newwin(15, 82, 26, 1);
     desenhaMapa(janelaTopo, 2);  // função exemplo que desenha o janela no ecrã
     desenhaMapa(janelaBaixo, 1);  // função exemplo que desenha o janela no ecrã
 
     if (argc != 2) {
-        mvprintw(1, 10, "Insira o numero correto de parametros.\n");
+        mvprintw(1, 10, "Insira o número correto de parametros.\n");
         wrefresh(janelaTopo);
         fflush(stdin);
         endwin();
