@@ -107,8 +107,6 @@ void loadMapa(GameSetup *, int);
 
 void sinalizaBot(int, siginfo_t *, void *);
 
-void testaBots();
-
 void desenhaMapa(char[MAPA_LINHAS][MAPA_COLUNAS]);
 
 int verificaComando(char *);
