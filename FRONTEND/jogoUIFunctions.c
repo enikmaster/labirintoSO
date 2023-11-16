@@ -1,7 +1,6 @@
 #include "../BACKEND/constantes.h"
 #include "jogoUI.h"
 
-
 int verificaComandoUI(char *comando, WINDOW *janelaBaixo) {
     comando[strlen(comando)] = '\0';
     for (int i = 0; i < strlen(comando); ++i) {
@@ -42,18 +41,15 @@ int verificaComandoUI(char *comando, WINDOW *janelaBaixo) {
 bool checkIfUserAtivo(char *userToMessage) { return true; }
 
 void desenhaMapa(WINDOW *janela, int tipo) {
-
-    // quando temos o scroll ativo, não deveremos ter a borda desenhada na janela para não termos o problema escrever em cima das bordas
     if (tipo == 1) {
-        scrollok(janela, TRUE); // liga o scroll na "janela".
+        scrollok(janela, TRUE);
         wprintw(janela, "\nComando: ");
     } else {
-        keypad(janela, TRUE); // para ligar as teclas de direção (aplicar à janela)
-        wclear(janela);// limpa a janela
-        wborder(janela, '|', '|', '-', '-', '+', '+', '+',
-                '+'); // Desenha uma borda. Nota importante: tudo o que escreverem, devem ter em conta a posição da borda
+        keypad(janela, TRUE);
+        wclear(janela);
+        wborder(janela, '|', '|', '-', '-', '+', '+', '+', '+');
     }
-    refresh(); // necessário para atualizar a janela
+    refresh();
     wrefresh(janela);
 }
 
@@ -65,7 +61,6 @@ void trataTeclado(WINDOW *janelaTopo, WINDOW *janelaBaixo) {
 
     while (tecla != 113) // trata as tecla até introduzirem a letra q. O código asci de q é 113
     {
-
         if (tecla == KEY_UP) {
             desenhaMapa(janelaTopo, 2);
             mvwprintw(janelaTopo, 1, 1, "Estou a carregar na tecla UP na posição 1,1 ");
@@ -83,9 +78,9 @@ void trataTeclado(WINDOW *janelaTopo, WINDOW *janelaBaixo) {
             mvwprintw(janelaTopo, 1, 1, "Estou a carregar na tecla DOWN na posição 1,1");
             wrefresh(janelaTopo);
         } else if (tecla == ' ') {
-            wclear(janelaBaixo); // queremos scroll? acho que n
+            wclear(janelaBaixo);
             echo();
-            wprintw(janelaBaixo, "\n #> ");
+            wprintw(janelaBaixo, "\nDigite um comando: ");
             wgetstr(janelaBaixo, comando);
             noecho();
             wrefresh(janelaBaixo);
