@@ -19,7 +19,10 @@
 #define CHAR_BLOCK 'B'
 #define CHAR_WALL 'X'
 
-extern char PathGameSetup[TAMANHO_PATH];
+extern char Inscricao[TAMANHO_PATH];
+extern char NPlayers[TAMANHO_PATH];
+extern char Duracao[TAMANHO_PATH];
+extern char Decremento[TAMANHO_PATH];
 extern char PathMapaUm[TAMANHO_PATH];
 extern char PathMapaDois[TAMANHO_PATH];
 extern char PathMapaTres[TAMANHO_PATH];
