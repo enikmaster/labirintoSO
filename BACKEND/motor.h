@@ -79,10 +79,10 @@ struct Bot {
 //  - Setup - dados sobre a configuração inicial do jogo
 typedef struct Setup Setup, *pSetup;
 struct Setup {
-    int inscricao;
-    int duracao;
-    int decremento;
-    int minJogadores;
+    long int inscricao;
+    long int duracao;
+    long int decremento;
+    long int minJogadores;
 };
 //  - GameSetup - estrutura de dados sobre a configuração do jogo
 //  esta informação não passa toda para os clientes

@@ -16,49 +16,33 @@ void sinalizaBot(int sig, siginfo_t *info, void *context) {
 }
 
 void setGameSetup(GameSetup *gameSetup) {
-    FILE *ficheiro;
-    ficheiro = fopen(PathGameSetup, "r");
-    // descomentar para debugging
-    //ficheiro = fopen("BACKEND/GAME_SETUP", "r");
-    if (ficheiro == NULL) {
-        perror("[ERRO] Erro ao abrir o ficheiro %s\n");
+    char *endptr;
+    gameSetup->ptrSetup = malloc(sizeof(Setup));
+    if (gameSetup->ptrSetup == NULL) {
+        perror("[ERRO] Erro ao alocar memória para o setup\n");
+        free(gameSetup->ptrSetup);
         exit(-1);
-    } else {
-        char conteudo[TAMANHO_CONTEUDO];
-        char *endptr;
-        int contador = 0;
-        long int value;
-        gameSetup->ptrSetup = malloc(sizeof(Setup));
-        while (fgets(conteudo, sizeof(conteudo), ficheiro) != NULL) {
-            value = strtol(conteudo, &endptr, 10);
-            if (endptr == conteudo || *endptr != '\n' && *endptr != '\0') {
-                contador = 0;
-                perror("[ERRO] Erro ao converter string para inteiro\n");
-                exit(-1);
-            } else {
-                switch (++contador) {
-                    case 1:
-                        gameSetup->ptrSetup->inscricao = (int) value;
-                        break;
-                    case 2:
-                        gameSetup->ptrSetup->duracao = (int) value;
-                        break;
-                    case 3:
-                        gameSetup->ptrSetup->decremento = (int) value;
-                        break;
-                    case 4:
-                        gameSetup->ptrSetup->minJogadores = (int) value;
-                        break;
-                    default:
-                        contador = 0;
-                        perror("[ERRO] Erro ao converter string para inteiro\n");
-                        exit(-1);
-                }
-
-            }
-        }
     }
-    fclose(ficheiro);
+    gameSetup->ptrSetup->inscricao = strtol(Inscricao, &endptr, 10);
+    if (*endptr != '\n' && *endptr != '\0') {
+        perror("[ERRO] Erro ao converter string para inteiro\n");
+        exit(-1);
+    }
+    gameSetup->ptrSetup->duracao = strtol(Duracao, &endptr, 10);
+    if (*endptr != '\n' && *endptr != '\0') {
+        perror("[ERRO] Erro ao converter string para inteiro\n");
+        exit(-1);
+    }
+    gameSetup->ptrSetup->decremento = strtol(Decremento, &endptr, 10);
+    if (*endptr != '\n' && *endptr != '\0') {
+        perror("[ERRO] Erro ao converter string para inteiro\n");
+        exit(-1);
+    }
+    gameSetup->ptrSetup->minJogadores = strtol(NPlayers, &endptr, 10);
+    if (*endptr != '\n' && *endptr != '\0') {
+        perror("[ERRO] Erro ao converter string para inteiro\n");
+        exit(-1);
+    }
 }
 
 void preencheMapa(pMap novo, FILE *ficheiro) {
@@ -178,9 +162,9 @@ int verificaComando(char *comando) {
     const char listaComandos[][TAMANHO_COMANDO] = {"users", "bots", "bmov", "rbm", "begin", "end", "test_bot",
                                                    "test_mapa"};
     comando[strlen(comando) - 1] = '\0';
-    for (int i = 0; i < strlen(comando); ++i) {
+    for (int i = 0; i < strlen(comando); ++i)
         comando[i] = tolower(comando[i]);
-    }
+
     // comando sem argumentos
     if (strchr(comando, ' ') == NULL) {
         for (int i = 0; i < sizeof(listaComandos) / sizeof(listaComandos[0]); ++i) {
@@ -188,11 +172,11 @@ int verificaComando(char *comando) {
                 printf("Comando %s válido\n", comando);
                 fflush(stdin);
                 // para a meta 1
-                if (i == 6) return 8;
-                if (i == 7) return 9;
-                return (strcmp(comando, "end") == 0) ? 1 : 0;
+                //if (i == 6) return 8;
+                //if (i == 7) return 9;
+                //return (strcmp(comando, "end") == 0) ? 1 : 0;
                 // para a meta 2
-                // return i + 1;
+                return i + 1;
             }
         }
         printf("Comando %s inválido\n", comando);
@@ -226,7 +210,10 @@ int verificaComando(char *comando) {
 }
 
 void pathParaVariaveisAmbiente() {
-    strcpy(PathGameSetup, getenv("GAME_SETUP"));
+    strcpy(Inscricao, getenv("INSCRICAO"));
+    strcpy(NPlayers, getenv("NPLAYERS"));
+    strcpy(Duracao, getenv("DURACAO"));
+    strcpy(Decremento, getenv("DECREMENTO"));
     strcpy(PathMapaUm, getenv("PATH_MAPA_UM"));
     strcpy(PathMapaDois, getenv("PATH_MAPA_DOIS"));
     strcpy(PathMapaTres, getenv("PATH_MAPA_TRES"));
