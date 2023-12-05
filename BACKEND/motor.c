@@ -40,6 +40,7 @@ int main(int argc, char *argv[]) {
             controlo = 0;
         }
     } while (controlo == 0);
-    fecharJogo(&gameSetup);
+    
+    fecharJogo(&gameSetup); // esta é a última coisa a fazer antes de sair
     exit(0);
 }

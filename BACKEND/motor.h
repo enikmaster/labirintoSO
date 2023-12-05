@@ -29,7 +29,7 @@ struct Position {
 //  - User - dados sobre um utilizador
 typedef struct User User, *pUser;
 struct User {
-    char pid[50];
+    int pid;
     char username[TAMANHO_NAMES];
     char identificador;
     pPosition position;
@@ -52,21 +52,21 @@ struct Block {
     pBlock next;
 };
 //  - Wall - dados sobre uma parede
-typedef struct Wall Wall, *pWall;
-struct Wall {
-    char identificador;
-    pPosition position;
-    pWall next;
-};
+//typedef struct Wall Wall, *pWall;
+//struct Wall {
+//    char identificador;
+//    pPosition position;
+//    pWall next;
+//};
 //  - Mapa - dados sobre o mapa
 typedef struct Map Map, *pMap;
 struct Map {
     pPosition ptrMeta;
     pPosition ptrInicioHeader;
-    //pUser ptrUsersAtivosHeader; // em aberto porque ja existe no gameSetup
+    ///////////////pUser ptrUsersAtivosHeader; // em aberto porque ja existe no gameSetup
     //pRock ptrRocksHeader;
     //pBlock ptrBlocksHeader;
-    //pWall ptrWallsHeader; // em aberto
+    ///////////////pWall ptrWallsHeader; // em aberto
     char mapa[MAPA_LINHAS][MAPA_COLUNAS];
     pMap next;
 };

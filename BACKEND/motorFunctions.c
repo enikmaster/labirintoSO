@@ -185,39 +185,14 @@ int verificaComando(char *comando) {
     if (strchr(comando, ' ') == NULL) {
         for (int i = 0; i < sizeof(listaComandos) / sizeof(listaComandos[0]); ++i) {
             if (strcmp(comando, listaComandos[i]) == 0) {
-                /*switch (i) {
-                    case 0:
-                        printf("Comando %s válido\n", comando);
-                        fflush(stdin);
-                        return 1;
-                    case 1:
-                        printf("Comando %s válido\n", comando);
-                        fflush(stdin);
-                        return 2;
-                    case 2:
-                        printf("Comando %s válido\n", comando);
-                        fflush(stdin);
-                        return 3;
-                    case 3:
-                        printf("Comando %s válido\n", comando);
-                        fflush(stdin);
-                        return 4;
-                    case 4:
-                        printf("Comando %s válido\n", comando);
-                        fflush(stdin);
-                        return 5;
-                    case 5:
-                        printf("Comando %s válido\n", comando);
-                        fflush(stdin);
-                        return 6;
-                    default:
-                        return 0;
-                }*/
                 printf("Comando %s válido\n", comando);
                 fflush(stdin);
+                // para a meta 1
                 if (i == 6) return 8;
                 if (i == 7) return 9;
                 return (strcmp(comando, "end") == 0) ? 1 : 0;
+                // para a meta 2
+                // return i + 1;
             }
         }
         printf("Comando %s inválido\n", comando);
@@ -295,7 +270,6 @@ void testarBot() {
             exit(-1);
         }
     } else if (pidBot > 0) {
-
         struct sigaction sac = {0};
         sac.sa_sigaction = sinalizaBot;
         if (sigaction(SIGINT, &sac, NULL) == -1) {
