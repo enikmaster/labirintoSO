@@ -1,4 +1,4 @@
-#include "../BACKEND/constantes.h"
+#include "../constantes.h"
 #include "jogoUI.h"
 
 int verificaComandoUI(char *comando, WINDOW *janelaBaixo) {

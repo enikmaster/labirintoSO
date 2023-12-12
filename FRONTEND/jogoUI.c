@@ -1,10 +1,20 @@
-#include "../BACKEND/constantes.h"
+#include "../constantes.h"
 #include "jogoUI.h"
 
 int main(int argc, char *argv[]) {
 
     int controlo = 0;
     char comando[TAMANHO_NAMES] = {'\0'};
+
+    if (access(SRV_FIFO, F_OK) != 0) {
+        perror("[ERRO] O servidor não está a correr.\n");
+        exit(-1);
+    }
+
+    if (argc != 2) {
+        printf("[ERRO] Número de argumentos inválido.\n");
+        exit(-1);
+    }
 
     initscr();
     //start_color();
@@ -29,22 +39,14 @@ int main(int argc, char *argv[]) {
     WINDOW *janelaBaixo = newwin(15, 82, 26, 1);
     desenhaMapa(janelaTopo, 2);  // função exemplo que desenha o janela no ecrã
     desenhaMapa(janelaBaixo, 1);  // função exemplo que desenha o janela no ecrã
+    trataTeclado(janelaTopo, janelaBaixo); // função exemplo que trata o teclado
+    wclear(janelaTopo); // função que limpa o ecrã
+    wrefresh(janelaTopo);  // função que faz atualização o ecrã com as operações realizadas anteriormente
+    delwin(janelaTopo);  // apaga a janela.
+    wclear(janelaBaixo); // função que limpa o ecrã
+    wrefresh(janelaBaixo); // função que faz atualiza o ecrã com as operações realizadas anteriormente
+    delwin(janelaBaixo);  // apaga a janela.
+    endwin();  // encerra a utilização do ncurses. Muito importante senão o terminal fica inconsistente (idem se sair por outras vias)
 
-    if (argc != 2) {
-        mvprintw(1, 10, "Insira o número correto de parametros.\n");
-        wrefresh(janelaTopo);
-        fflush(stdin);
-        endwin();
-        return 0;
-    } else {
-        trataTeclado(janelaTopo, janelaBaixo); // função exemplo que trata o teclado
-        wclear(janelaTopo); // função que limpa o ecrã
-        wrefresh(janelaTopo);  // função que faz atualização o ecrã com as operações realizadas anteriormente
-        delwin(janelaTopo);  // apaga a janela.
-        wclear(janelaBaixo); // função que limpa o ecrã
-        wrefresh(janelaBaixo); // função que faz atualiza o ecrã com as operações realizadas anteriormente
-        delwin(janelaBaixo);  // apaga a janela.
-        endwin();  // encerra a utilização do ncurses. Muito importante senão o terminal fica inconsistente (idem se sair por outras vias)
-
-    }
+    exit(0);
 };

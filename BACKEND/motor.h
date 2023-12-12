@@ -8,7 +8,9 @@
 #include <string.h>
 #include <ctype.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 extern pid_t pidBot;
 
