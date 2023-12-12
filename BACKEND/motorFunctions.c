@@ -1,4 +1,4 @@
-#include "constantes.h"
+#include "../constantes.h"
 #include "motor.h"
 
 char PathGameSetup[TAMANHO_PATH];

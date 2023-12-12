@@ -19,6 +19,8 @@
 #define CHAR_BLOCK 'B'
 #define CHAR_WALL 'X'
 
+#define SRV_FIFO "canal"
+
 extern char Inscricao[TAMANHO_PATH];
 extern char NPlayers[TAMANHO_PATH];
 extern char Duracao[TAMANHO_PATH];
