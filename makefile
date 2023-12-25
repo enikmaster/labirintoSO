@@ -2,7 +2,7 @@ all: motor jogoUI
 	chmod +x labirinto.sh
 
 motor: BACKEND/motor.c BACKEND/motorFunctions.c bot.c
-	gcc -o motor BACKEND/motor.c BACKEND/motorFunctions.c -lpthread -pthread
+	gcc -o motor BACKEND/motorFunctions.c BACKEND/motor.c -lpthread -pthread
 	gcc -o bot bot.c -lpthread -pthread
 
 jogoUI: FRONTEND/jogoUI.c FRONTEND/jogoUIFunctions.c
