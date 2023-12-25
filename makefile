@@ -9,4 +9,4 @@ jogoUI: FRONTEND/jogoUI.c FRONTEND/jogoUIFunctions.c
 	gcc -o jogoUI FRONTEND/jogoUI.c FRONTEND/jogoUIFunctions.c -lpthread -pthread -lncurses
 
 clean:
-	rm -f motor jogoUI bot
+	rm -f motor jogoUI bot canal

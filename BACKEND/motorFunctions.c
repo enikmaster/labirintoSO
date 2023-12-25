@@ -5,6 +5,10 @@ char PathGameSetup[TAMANHO_PATH];
 char PathMapaUm[TAMANHO_PATH];
 char PathMapaDois[TAMANHO_PATH];
 char PathMapaTres[TAMANHO_PATH];
+char Inscricao[TAMANHO_PATH];
+char NPlayers[TAMANHO_PATH];
+char Duracao[TAMANHO_PATH];
+char Decremento[TAMANHO_PATH];
 
 void sinalizaBot(int sig, siginfo_t *info, void *context) {
     union sigval value;
@@ -23,6 +27,7 @@ void setGameSetup(GameSetup *gameSetup) {
         free(gameSetup->ptrSetup);
         exit(-1);
     }
+
     gameSetup->ptrSetup->inscricao = strtol(Inscricao, &endptr, 10);
     if (*endptr != '\n' && *endptr != '\0') {
         perror("[ERRO] Erro ao converter string para inteiro\n");
