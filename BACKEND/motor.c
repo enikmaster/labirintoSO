@@ -27,6 +27,8 @@ int main(int argc, char *argv[]) {
     gameSetup.nivel = 1;
     gameSetup.ptrMapa = NULL;
     gameSetup.ptrSetup = NULL;
+    gameSetup.ptrUsersAtivosHeader = NULL;
+    gameSetup.ptrUsersEsperaHeader = NULL;
     setGameSetup(&gameSetup);
     loadMapa(&gameSetup, gameSetup.nivel);
     if (gameSetup.ptrMapa == NULL) {
@@ -35,28 +37,56 @@ int main(int argc, char *argv[]) {
     }
     int controlo = 0;
     char comando[TAMANHO_COMANDO];
+    char comandoTemp[TAMANHO_COMANDO];
+    char username[TAMANHO_COMANDO];
 
     do {
         printf("Digite um comando: ");
         fgets(comando, sizeof(comando), stdin);
         controlo = verificaComando(comando);
-        // switch(controlo) {
-        //     case 1:
-        //         controlo = comandoUsers();
-        //         break;
-        // }
+        switch (controlo) {
+            case 1:
+                controlo = comandoUsers(&gameSetup);
+                break;
+            case 2:
+                controlo = comandoBots();
+                break;
+            case 3:
+                controlo = comandoBmov();
+                break;
+            case 4:
+                controlo = comandoRbm();
+                break;
+            case 5:
+                controlo = comandoBegin();
+                break;
+            case 6:
+                controlo = comandoEnd();
+                break;
+            case 7:
+                memset(comandoTemp, 0, sizeof(comandoTemp));
+                memset(username, 0, sizeof(username));
+                sscanf(comando, "%s %s", comandoTemp, username);
+                controlo = comandoKick(&gameSetup, username);
+                break;
+            default:
+                printf("[ERRO] Comando inválido.\n");
+                break;
+        }
 
         // estes dois comandos são apenas para a meta 1
-        if (controlo == 8) {
+        /*if (controlo == 8) {
             testarBot();
             controlo = 0;
         }
         if (controlo == 9) {
             desenhaMapa(gameSetup.ptrMapa->mapa);
             controlo = 0;
-        }
-    } while (controlo == 0);
-
+        }*/
+    } while (controlo != 6);
+    // fecahr o pipe do servidor
+    close(fd[0]);
+    unlink(SRV_FIFO);
     fecharJogo(&gameSetup); // esta é a última coisa a fazer antes de sair
     exit(0);
 }

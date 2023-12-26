@@ -53,22 +53,13 @@ struct Block {
     int duracao;
     pBlock next;
 };
-//  - Wall - dados sobre uma parede
-//typedef struct Wall Wall, *pWall;
-//struct Wall {
-//    char identificador;
-//    pPosition position;
-//    pWall next;
-//};
 //  - Mapa - dados sobre o mapa
 typedef struct Map Map, *pMap;
 struct Map {
     pPosition ptrMeta;
     pPosition ptrInicioHeader;
-    ///////////////pUser ptrUsersAtivosHeader; // em aberto porque ja existe no gameSetup
     //pRock ptrRocksHeader;
     //pBlock ptrBlocksHeader;
-    ///////////////pWall ptrWallsHeader; // em aberto
     char mapa[MAPA_LINHAS][MAPA_COLUNAS];
     pMap next;
 };
@@ -90,8 +81,8 @@ struct Setup {
 //  esta informação não passa toda para os clientes
 typedef struct {
     pSetup ptrSetup;
-    //pUser ptrUsersAtivosHeader;
-    //pUser ptrUsersEsperaHeader;
+    pUser ptrUsersAtivosHeader;
+    pUser ptrUsersEsperaHeader;
     //pBot ptrBotsHeader;
     pMap ptrMapa;
     int usersAtivos;
@@ -109,12 +100,28 @@ void loadMapa(GameSetup *, int);
 
 void sinalizaBot(int, siginfo_t *, void *);
 
-void desenhaMapa(char[MAPA_LINHAS][MAPA_COLUNAS]);
-
 int verificaComando(char *);
 
 void fecharJogo(GameSetup *);
 
+// meta 1
+void desenhaMapa(char[MAPA_LINHAS][MAPA_COLUNAS]);
+
 void testarBot();
+
+// comandos do backend
+int comandoUsers(GameSetup *);
+
+int comandoBots();
+
+int comandoBmov();
+
+int comandoRbm();
+
+int comandoBegin();
+
+int comandoEnd();
+
+int comandoKick(GameSetup *, char *);
 
 #endif

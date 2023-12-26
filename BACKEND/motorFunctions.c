@@ -164,8 +164,10 @@ void desenhaMapa(char mapa[MAPA_LINHAS][MAPA_COLUNAS]) {
 }
 
 int verificaComando(char *comando) {
-    const char listaComandos[][TAMANHO_COMANDO] = {"users", "bots", "bmov", "rbm", "begin", "end", "test_bot",
-                                                   "test_mapa"};
+    const char listaComandos[][TAMANHO_COMANDO] = {"users", "bots", "bmov", "rbm", "begin", "end",
+            //"test_bot",
+            //"test_mapa"
+    };
     comando[strlen(comando) - 1] = '\0';
     for (int i = 0; i < strlen(comando); ++i)
         comando[i] = tolower(comando[i]);
@@ -205,8 +207,8 @@ int verificaComando(char *comando) {
         if (strcmp(comandoTemp, "kick") == 0) {
             printf("Comando %s válido\n", comando);
             fflush(stdin);
-            return 0;
-            //return 7;
+            //return 0;
+            return 7;
         }
         printf("Comando %s inválido\n", comando);
     }
@@ -237,6 +239,17 @@ void fecharJogo(GameSetup *gameSetup) {
         free(gameSetup->ptrMapa->ptrMeta);
         gameSetup->ptrMapa = gameSetup->ptrMapa->next;
         free(libertaMapa);
+    }
+    pUser libertaUser;
+    while (gameSetup->ptrUsersAtivosHeader != NULL) {
+        libertaUser = gameSetup->ptrUsersAtivosHeader;
+        gameSetup->ptrUsersAtivosHeader = gameSetup->ptrUsersAtivosHeader->next;
+        free(libertaUser);
+    }
+    while (gameSetup->ptrUsersEsperaHeader != NULL) {
+        libertaUser = gameSetup->ptrUsersEsperaHeader;
+        gameSetup->ptrUsersEsperaHeader = gameSetup->ptrUsersEsperaHeader->next;
+        free(libertaUser);
     }
     free(gameSetup->ptrSetup);
 }
