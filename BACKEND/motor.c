@@ -1,5 +1,6 @@
 #include "../constantes.h"
 #include "motor.h"
+#include <pthread.h>
 
 pid_t pidBot;
 
@@ -35,6 +36,16 @@ int main(int argc, char *argv[]) {
         perror("[ERRO] Erro ao carregar o mapa\n");
         exit(-1);
     }
+    ThreadData tData;
+    tData.continua = 1;
+
+    pthread_t threadTimersId;
+
+    if (pthread_create(&threadTimersId, NULL, threadTimers, (void *) &tData) != 0) {
+        perror("[ERRO] Erro ao criar a thread dos timers.\n");
+        exit(-1);
+    }
+
     int controlo = 0;
     char comando[TAMANHO_COMANDO];
     char comandoTemp[TAMANHO_COMANDO];
@@ -61,7 +72,8 @@ int main(int argc, char *argv[]) {
                 controlo = comandoBegin();
                 break;
             case 6:
-                controlo = comandoEnd();
+                controlo = comandoEnd(); // fecha a loja e manda todos para casa
+                controlo = 6;
                 break;
             case 7:
                 memset(comandoTemp, 0, sizeof(comandoTemp));
@@ -70,7 +82,7 @@ int main(int argc, char *argv[]) {
                 controlo = comandoKick(&gameSetup, username);
                 break;
             default:
-                printf("[ERRO] Comando inválido.\n");
+                printf("[INFO] Comando inválido.\n");
                 break;
         }
 
@@ -84,7 +96,13 @@ int main(int argc, char *argv[]) {
             controlo = 0;
         }*/
     } while (controlo != 6);
-    // fecahr o pipe do servidor
+    // fechar a thread
+    tData.continua = 0;
+    if (pthread_join(threadTimersId, NULL) != 0) {
+        perror("[ERRO] Erro ao fechar a thread dos timers.\n");
+        exit(-1);
+    }
+    // fechar o pipe do servidor
     close(fd[0]);
     unlink(SRV_FIFO);
     fecharJogo(&gameSetup); // esta é a última coisa a fazer antes de sair
