@@ -15,6 +15,11 @@
 extern pid_t pidBot;
 
 // ESTRUTURAS
+typedef struct ThreadData ThreadData, *pThreadData;
+struct ThreadData {
+    int continua;
+    pthread_mutex_t *pTrinco;
+};
 //  - Mensagem - estrutura de dados a passar a cada utilizador
 typedef struct {
     char mapa[MAPA_LINHAS][MAPA_COLUNAS]; // para desenhar o mapa no cliente
@@ -109,6 +114,9 @@ void desenhaMapa(char[MAPA_LINHAS][MAPA_COLUNAS]);
 
 void testarBot();
 
+// threads
+void *threadTimers(void *);
+
 // comandos do backend
 int comandoUsers(GameSetup *);
 
@@ -123,5 +131,8 @@ int comandoBegin();
 int comandoEnd();
 
 int comandoKick(GameSetup *, char *);
+
+// comandos do frontend
+
 
 #endif

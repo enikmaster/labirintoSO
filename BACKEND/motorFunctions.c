@@ -13,7 +13,7 @@ char Decremento[TAMANHO_PATH];
 void sinalizaBot(int sig, siginfo_t *info, void *context) {
     union sigval value;
     if (sigqueue(pidBot, sig, value) == -1) {
-        perror("Não foi possivel enviar o sinal e tem o erro: ");
+        perror("[INFO] Não foi possivel enviar o sinal e tem o erro: ");
         return;
     }
     pidBot = -1;
@@ -133,7 +133,11 @@ void loadMapa(GameSetup *gameSetup, int nivel) {
         pMap novoMapa = (pMap) malloc(sizeof(Map));
         if (novoMapa == NULL) {
             perror("[ERRO] Erro ao alocar memória para um mapa\n");
-            free(novoMapa);
+            while (gameSetup->ptrMapa != NULL) {
+                pMap temp = gameSetup->ptrMapa;
+                gameSetup->ptrMapa = gameSetup->ptrMapa->next;
+                free(temp);
+            }
             fclose(ficheiro);
             exit(-1);
         }
@@ -141,7 +145,7 @@ void loadMapa(GameSetup *gameSetup, int nivel) {
         novoMapa->ptrInicioHeader = NULL;
         novoMapa->next = NULL;
         preencheMapa(novoMapa, ficheiro);
-        if (gameSetup->ptrMapa == NULL) {
+        if (thisMapa == NULL) {
             gameSetup->ptrMapa = novoMapa;
             thisMapa = gameSetup->ptrMapa;
         } else {
@@ -149,17 +153,6 @@ void loadMapa(GameSetup *gameSetup, int nivel) {
             thisMapa = novoMapa;
         }
         fclose(ficheiro);
-    }
-}
-
-void desenhaMapa(char mapa[MAPA_LINHAS][MAPA_COLUNAS]) {
-    system("clear");
-    //printf("\e[H\e[2J\e[3J");
-    for (int y = 0; y < MAPA_LINHAS; ++y) {
-        for (int x = 0; x < MAPA_COLUNAS; ++x) {
-            printf("%c", mapa[y][x]);
-        }
-        printf("\n");
     }
 }
 
@@ -254,6 +247,7 @@ void fecharJogo(GameSetup *gameSetup) {
     free(gameSetup->ptrSetup);
 }
 
+// meta 1
 void testarBot() {
     int fd[2], status;
 
@@ -296,5 +290,16 @@ void testarBot() {
         waitpid(pidBot, &status, 0);
         printf("\nEncerramos o bot!\n");
         close(fd[0]);
+    }
+}
+
+void desenhaMapa(char mapa[MAPA_LINHAS][MAPA_COLUNAS]) {
+    system("clear");
+    //printf("\e[H\e[2J\e[3J");
+    for (int y = 0; y < MAPA_LINHAS; ++y) {
+        for (int x = 0; x < MAPA_COLUNAS; ++x) {
+            printf("%c", mapa[y][x]);
+        }
+        printf("\n");
     }
 }
