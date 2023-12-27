@@ -3,7 +3,7 @@
 export INSCRICAO=30
 
 # Define a variável de ambiente "NPLAYERS" com o valor "3"
-export NPLAYERS=3
+export NPLAYERS=2
 
 # Define a variável de ambiente "DURACAO" com o valor "120"
 export DURACAO=120
