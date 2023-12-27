@@ -247,6 +247,13 @@ void fecharJogo(GameSetup *gameSetup) {
     free(gameSetup->ptrSetup);
 }
 
+void sigHandler(int sig) {
+    if (sig == SIGINT) {
+        printf("\n[INFO] A fechar o jogo...\n");
+        exit(0);
+    }
+}
+
 // meta 1
 void testarBot() {
     int fd[2], status;
