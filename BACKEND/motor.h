@@ -12,6 +12,7 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <ncurses.h>
+#include <pthread.h>
 
 extern pid_t pidBot;
 
@@ -67,23 +68,39 @@ struct MsgFrontEnd {
 };
 
 typedef enum {
-    tipo_a,
-    tipo_b,
-    tipo_c
+    tipo_retorno_inscricao,
+    tipo_retorno_players,
 } TipoBackEnd;
 
 // definir aqui os tipos de mensagem de retorno
+typedef struct TipoRetornoInscricao TipoRetornoInscricao;
+struct TipoRetornoInscricao {
+    char origem[TAMANHO_NAMES]; // pid do jogador
+    char mensagem[TAMANHO_CONTEUDO]; // mensagem do jogador
+};
 
+typedef struct TipoRetornoPlayers TipoRetornoPlayers;
+struct TipoRetornoPlayers {
+    char origem[TAMANHO_NAMES]; // nome da origem (neste caso servidor)
+    char listaJogadores[MAX_USERS][TAMANHO_NAMES]; // lista de jogadores ativos
+};
 
-/*typedef struct MsgBackEnd MsgBackEnd;
+typedef struct TipoRetornoChat TipoRetornoChat;
+struct TipoRetornoChat {
+    char origem[TAMANHO_NAMES]; // nome da origem (neste caso servidor)
+    char destino[TAMANHO_NAMES]; // mensagem do jogador
+    char mensagem[TAMANHO_CONTEUDO]; // mensagem do jogador
+};
+
+typedef struct MsgBackEnd MsgBackEnd;
 struct MsgBackEnd {
     TipoBackEnd tipoMensagem;
     union {
-        TipoA inscricao;
-        TipoB movimento;
-        TipoC informacao;
+        TipoRetornoInscricao retornoInscricao;
+        TipoRetornoPlayers retornoPlayers;
+        TipoRetornoChat retornoChat;
     } informacao;
-};*/
+};
 
 //  - Mensagem - estrutura de dados a passar a cada utilizador
 typedef struct {
@@ -160,6 +177,7 @@ typedef struct {
     int usersEspera;
     int tempoJogo;
     int nivel;
+    pthread_mutex_t mutexJogadores;
 } GameSetup;
 
 typedef struct ThreadData ThreadData, *pThreadData;

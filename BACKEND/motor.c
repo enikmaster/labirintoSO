@@ -1,6 +1,5 @@
 #include "../constantes.h"
 #include "motor.h"
-#include <pthread.h>
 
 pid_t pidBot;
 
@@ -17,15 +16,8 @@ int main(int argc, char *argv[]) {
 
     pathParaVariaveisAmbiente();
     GameSetup gameSetup;
-    gameSetup.jogoAtivo = false;
-    gameSetup.usersAtivos = 0;
-    gameSetup.usersEspera = 0;
-    gameSetup.tempoJogo = 0;
-    gameSetup.nivel = 1;
-    gameSetup.ptrMapa = NULL;
-    gameSetup.ptrSetup = NULL;
-    gameSetup.ptrUsersAtivosHeader = NULL;
-    gameSetup.ptrUsersEsperaHeader = NULL;
+
+
     setGameSetup(&gameSetup);
     loadMapa(&gameSetup, gameSetup.nivel);
     if (gameSetup.ptrMapa == NULL) {

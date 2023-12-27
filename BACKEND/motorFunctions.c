@@ -11,7 +11,7 @@ char Duracao[TAMANHO_PATH];
 char Decremento[TAMANHO_PATH];
 
 void sinalizaBot(int sig, siginfo_t *info, void *context) {
-    union sigval value;
+    union sigval value = {.sival_int = 0};
     if (sigqueue(pidBot, sig, value) == -1) {
         perror("[INFO] Não foi possivel enviar o sinal e tem o erro: ");
         return;
@@ -20,6 +20,16 @@ void sinalizaBot(int sig, siginfo_t *info, void *context) {
 }
 
 void setGameSetup(GameSetup *gameSetup) {
+    gameSetup->jogoAtivo = false;
+    gameSetup->usersAtivos = 0;
+    gameSetup->usersEspera = 0;
+    gameSetup->tempoJogo = 0;
+    gameSetup->nivel = 1;
+    gameSetup->ptrMapa = NULL;
+    gameSetup->ptrSetup = NULL;
+    gameSetup->ptrUsersAtivosHeader = NULL;
+    gameSetup->ptrUsersEsperaHeader = NULL;
+    pthread_mutex_init(&gameSetup->mutexJogadores, NULL);
     char *endptr;
     gameSetup->ptrSetup = malloc(sizeof(Setup));
     if (gameSetup->ptrSetup == NULL) {
