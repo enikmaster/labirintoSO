@@ -1,6 +1,5 @@
 #include "../constantes.h"
 #include "motor.h"
-#include <pthread.h>
 
 void *threadCountdownToStart(void *arg) {
     //ThreadData *tData = (ThreadData *) arg;
@@ -35,7 +34,7 @@ void *threadGerirFrontend(void *arg) {
             continue;
         }
         switch (msgFrontEnd.tipoMensagem) {
-            case tipo_inscricao:
+            case tipo_inscricao: // os jogadores inscrevem-se no jogo
                 if (tData->ptrGameSetup->usersAtivos < MAX_USERS) { // ainda há espaço para inscrições
                     char pipeName[TAMANHO_NAMES];
                     sprintf(pipeName, "cli%d", msgFrontEnd.informacao.inscricao.pid);
@@ -97,7 +96,6 @@ void *threadGerirFrontend(void *arg) {
                         pUser newUser = malloc(sizeof(User));
                         if (newUser == NULL) {
                             perror("[ERRO] Erro ao alocar memória para o novo user.\n");
-                            free(newUser);
                             continue;
                         }
                         newUser->pid = msgFrontEnd.informacao.inscricao.pid;
@@ -105,7 +103,6 @@ void *threadGerirFrontend(void *arg) {
                         newUser->position = malloc(sizeof(Position));
                         if (newUser->position == NULL) {
                             perror("[ERRO] Erro ao alocar memória para a posição do novo user.\n");
-                            free(newUser->position);
                             free(newUser);
                             continue;
                         }

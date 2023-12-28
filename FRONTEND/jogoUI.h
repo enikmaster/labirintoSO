@@ -7,7 +7,6 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <pthread.h>
-
 #include <ncurses.h>
 
 void desenhaMapa(WINDOW *, int);
@@ -17,5 +16,7 @@ void trataTeclado(WINDOW *, WINDOW *);
 int verificaComandoUI(char *, WINDOW *);
 
 bool checkIfUserAtivo(char *);
+
+void *threadGerirBackend(void *);
 
 #endif
