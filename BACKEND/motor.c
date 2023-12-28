@@ -16,8 +16,6 @@ int main(int argc, char *argv[]) {
 
     pathParaVariaveisAmbiente();
     GameSetup gameSetup;
-
-
     setGameSetup(&gameSetup);
     loadMapa(&gameSetup, gameSetup.nivel);
     if (gameSetup.ptrMapa == NULL) {

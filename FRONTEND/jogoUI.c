@@ -2,7 +2,6 @@
 #include "jogoUI.h"
 
 int main(int argc, char *argv[]) {
-
     int controlo = 0;
     char comando[TAMANHO_NAMES] = {'\0'};
 
@@ -15,7 +14,11 @@ int main(int argc, char *argv[]) {
         printf("[ERRO] Número de argumentos inválido.\n");
         exit(-1);
     }
-
+    pthread_t threadGerirBackendId;
+    if (pthread_create(&threadGerirBackendId, NULL, threadGerirBackend, (void *) argv[1]) != 0) {
+        perror("[ERRO] Erro ao criar a thread do backend.\n");
+        exit(-1);
+    }
     initscr();
     //start_color();
     raw();
@@ -49,4 +52,4 @@ int main(int argc, char *argv[]) {
     endwin();  // encerra a utilização do ncurses. Muito importante senão o terminal fica inconsistente (idem se sair por outras vias)
 
     exit(0);
-};
+}
