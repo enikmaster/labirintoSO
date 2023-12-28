@@ -28,10 +28,10 @@ int main(int argc, char *argv[]) {
             .continua = false,
             .ptrGameSetup = &gameSetup
     };
-    // thread para lidar com as inscrições dos jogadores
+    // thread para lidar com a comunicacao com o frontend
     pthread_t threadGerirFrontendId;
     if (pthread_create(&threadGerirFrontendId, NULL, threadGerirFrontend, (void *) &tData) != 0) {
-        perror("[ERRO] Erro ao criar a thread das inscrições.\n");
+        perror("[ERRO] Erro ao criar a thread dae comunicacao com o frontend.\n");
         exit(-1);
     }
     // thread para lidar com os timers do jogo, após os jogadores terem feito a inscrição

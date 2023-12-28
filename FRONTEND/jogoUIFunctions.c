@@ -1,5 +1,6 @@
 #include "../constantes.h"
 #include "jogoUI.h"
+#include "../BACKEND/motor.h"
 
 int verificaComandoUI(char *comando, WINDOW *janelaBaixo) {
     comando[strlen(comando)] = '\0';
@@ -26,6 +27,34 @@ int verificaComandoUI(char *comando, WINDOW *janelaBaixo) {
     if (strcmp(comando, "players") == 0) {
         wprintw(janelaBaixo, "\n Comando %s válido ", comando);
         fflush(stdin);
+        /*
+         * 1. Criar um obj MsgFrontEnd
+         * 2. Preencher o obj com os dados necessários
+         * 3. Abrir o named pipe com o meu nome para ouvir a mensagem de resposta do servido { fd_retorno }
+         * 4. Abrir o named pipe do servidor para enviar a mensagem { fd }
+         * 5. Enviar a mensagem para o servidor
+        */
+
+        MsgFrontEnd msgFrontEnd;
+        msgFrontEnd.tipoMensagem = tipo_informacao;
+        msgFrontEnd.informacao.informacao.pid = getpid();
+
+        char nome[20] = {'\0'};
+        int fd;
+        sprintf(nome, "cli%d", msgFrontEnd.informacao.informacao.pid);
+
+        fd = open(SRV_FIFO, O_WRONLY); // pipe do servidor
+        if (fd == -1) {
+            perror("[ERRO] Erro ao abrir o pipe do servidor.\n");
+            exit(-1);
+        }
+        if (write(fd, &msgFrontEnd, sizeof(msgFrontEnd)) == -1) {
+            perror("[ERRO] Erro ao escrever no pipe do servidor.\n");
+            close(fd);
+            exit(-1);
+        }
+        close(fd);
+
         return 0;
     } else if (strcmp(comando, "exit") == 0) {
         fflush(stdin);
