@@ -149,6 +149,45 @@ void *threadGerirFrontend(void *arg) {
             case tipo_movimento:
                 break;
             case tipo_informacao:
+                // le pedido do cliente e processa-o
+                if (msgFrontEnd.informacao.informacao.pid >= 0) {
+                    /*
+                     * 1. Criar um obj MsgBackend
+                     */
+                    char pipeName[TAMANHO_NAMES];
+                    sprintf(pipeName, "cli%d", msgFrontEnd.informacao.informacao.pid);
+                    int pipeJogador = open(pipeName, O_WRONLY);
+                    if (pipeJogador == -1) {
+                        perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
+                        continue;
+                    }
+                    // get lista de users ativos
+                    // contactenar isso para um array
+                    // meter isso no array no tipoMensagem
+                    // enviar para o jogador
+
+                    MsgBackEnd msgBackEnd;
+                    msgBackEnd.tipoMensagem = tipo_retorno_players;
+                    strcpy(msgBackEnd.informacao.retornoPlayers.origem, "Servidor");
+                    strcpy(msgBackEnd.informacao.retornoPlayers.mensagem, "Lista de jogadores ativos: ");
+
+                    pUser ptrUser = tData->ptrGameSetup->ptrUsersAtivosHeader;
+                    // enche o array com os nomes
+                    for (int i = 0; i < tData->ptrGameSetup->usersAtivos; ++i) {
+                        strcpy(msgBackEnd.informacao.retornoPlayers.listaJogadores[i], ptrUser->username);
+                        ptrUser = ptrUser->next;
+                    }
+
+                    // envia a mensagem para o jogador
+                    if (write(pipeJogador, &msgBackEnd, sizeof(msgBackEnd)) == -1) {
+                        perror("[ERRO] Erro ao escrever no pipe do jogador.\n");
+                        close(pipeJogador);
+                        continue;
+                    }
+                    close(pipeJogador);
+
+                }
+
                 break;
             case tipo_mensagem:
                 break;
