@@ -178,9 +178,9 @@ int verificaComando(char *comando) {
     if (strchr(comando, ' ') == NULL) {
         for (int i = 0; i < sizeof(listaComandos) / sizeof(listaComandos[0]); ++i) {
             if (strcmp(comando, listaComandos[i]) == 0) {
-                printf("Comando %s válido\n", comando);
-                fflush(stdin);
                 // para a meta 1
+                // printf("Comando %s válido\n", comando);
+                // fflush(stdin);
                 //if (i == 6) return 8;
                 //if (i == 7) return 9;
                 //return (strcmp(comando, "end") == 0) ? 1 : 0;
@@ -188,8 +188,8 @@ int verificaComando(char *comando) {
                 return i + 1;
             }
         }
-        printf("Comando %s inválido\n", comando);
-        fflush(stdin);
+        // printf("Comando %s inválido\n", comando);
+        // fflush(stdin);
         return 0;
     }
     // comando com 1 argumento
@@ -202,17 +202,17 @@ int verificaComando(char *comando) {
         memset(argumentoCtrl, 0, sizeof(argumentoCtrl));
         int nArgumentos = sscanf(comando, "%s %s %s", comandoTemp, argumentoTemp, argumentoCtrl);
         if (nArgumentos > 2) {
-            printf("Comando %s inválido\n", comando);
-            fflush(stdin);
+            //printf("Comando %s inválido\n", comando);
+            //fflush(stdin);
             return 0;
         }
         if (strcmp(comandoTemp, "kick") == 0) {
-            printf("Comando %s válido\n", comando);
-            fflush(stdin);
+            //printf("Comando %s válido\n", comando);
+            //fflush(stdin);
             //return 0;
             return 7;
         }
-        printf("Comando %s inválido\n", comando);
+        //printf("Comando %s inválido\n", comando);
     }
     fflush(stdin);
     return 0;
@@ -342,7 +342,7 @@ void testarBot() {
         struct sigaction sac = {0};
         sac.sa_sigaction = sinalizaBot;
         if (sigaction(SIGINT, &sac, NULL) == -1) {
-            perror("Erro no sigaction! Tem o erro: ");
+            perror("[ERRO] Erro no sigaction! Tem o erro: ");
             printf("\n");
         }
         while (pidBot != -1) {
@@ -351,7 +351,7 @@ void testarBot() {
             close(fd[1]);
             memset(dadosDoBot, 0, sizeof(dadosDoBot));
             if (read(fd[0], &dadosDoBot, sizeof(dadosDoBot)) == -1) {
-                perror("Erro a ler com o erro: ");
+                perror("[ERRO] Erro a ler com o erro: ");
                 printf("\n");
             }
             if (strlen(dadosDoBot) > 5 && pidBot != -1)

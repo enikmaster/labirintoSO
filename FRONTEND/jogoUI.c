@@ -5,10 +5,10 @@ int main(int argc, char *argv[]) {
     int controlo = 0;
     char comando[TAMANHO_NAMES] = {'\0'};
 
-    if (access(SRV_FIFO, F_OK) != 0) {
+    /*if (access(SRV_FIFO, F_OK) != 0) {
         perror("[ERRO] O servidor não está a correr.\n");
         exit(-1);
-    }
+    }*/
 
     if (argc != 2) {
         printf("[ERRO] Número de argumentos inválido.\n");
@@ -16,10 +16,20 @@ int main(int argc, char *argv[]) {
     }
 
     GameInfoFrontend gameInfoFrontend;
+    pUser thisUser = malloc(sizeof(User));
+    if (thisUser == NULL) {
+        perror("[ERRO] Erro ao alocar memória para o utilizador.\n");
+        fecharCliente(&gameInfoFrontend);
+        exit(-1);
+    }
+    setThisUser(&thisUser, argv[1]);
+    gameInfoFrontend.ptrThisUser = thisUser;
     setGameInfoFrontend(&gameInfoFrontend);
+
     ThreadDataFrontend tData = {
             .continua = false,
-            .ptrGameInfo = &gameInfoFrontend
+            .ptrGameInfo = &gameInfoFrontend,
+            .trinco = PTHREAD_MUTEX_INITIALIZER
     };
     pthread_t threadGerirBackendId;
     if (pthread_create(&threadGerirBackendId, NULL, threadGerirBackend, (void *) &tData) != 0) {
@@ -59,6 +69,23 @@ int main(int argc, char *argv[]) {
     delwin(janelaBaixo);  // apaga a janela.
     endwin();  // encerra a utilização do ncurses. Muito importante senão o terminal fica inconsistente (idem se sair por outras vias)
     tData.continua = true;
+    int forceExit = open(SRV_FIFO, O_WRONLY);
+    if (forceExit == -1) {
+        perror("[ERRO] Erro ao abrir o pipe do servidor.\n");
+        fecharCliente(&gameInfoFrontend);
+        exit(-1);
+    }
+    MsgBackEnd terminarPrograma = {
+            .tipoMensagem = tipo_terminar_programa
+    };
+    strcpy(terminarPrograma.informacao.terminarPrograma.origem, "motor");
+    strcpy(terminarPrograma.informacao.terminarPrograma.mensagem, "terminar");
+    if (write(forceExit, &terminarPrograma, sizeof(terminarPrograma)) == -1) {
+        perror("[ERRO] Erro ao escrever no pipe do servidor.\n");
+        close(forceExit);
+        fecharCliente(&gameInfoFrontend);
+        exit(-1);
+    }
     if (pthread_join(threadGerirBackendId, NULL) != 0) {
         perror("[ERRO] Erro ao esperar pela thread da comunicação do backend.\n");
         fecharCliente(&gameInfoFrontend);

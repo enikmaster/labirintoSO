@@ -3,11 +3,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
 #include <string.h>
 #include <ctype.h>
 #include <unistd.h>
-#include <pthread.h>
+#include <fcntl.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
 #include <ncurses.h>
+
+void setThisUser(pUser *, char *);
 
 void setGameInfoFrontend(GameInfoFrontend *);
 

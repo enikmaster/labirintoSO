@@ -1,6 +1,29 @@
 #include "../constantes.h"
 #include "jogoUI.h"
-#include "../BACKEND/motor.h"
+
+void setThisUser(pUser *thisUser, char *username) {
+    strcpy((*thisUser)->username, username);
+    (*thisUser)->pid = getpid();
+    pUserInfo userInfo = malloc(sizeof(UserInfo));
+    if (userInfo == NULL) {
+        perror("[ERRO] Erro ao alocar memória para o UserInfo.\n");
+        free(*thisUser);
+        exit(-1);
+    }
+    userInfo->identificador = toupper(username[0]);
+    userInfo->position = malloc(sizeof(Position));
+    if (userInfo->position == NULL) {
+        perror("[ERRO] Erro ao alocar memória para o Position.\n");
+        free(userInfo);
+        free(*thisUser);
+        exit(-1);
+    }
+    userInfo->position->x = 0;
+    userInfo->position->y = 0;
+    userInfo->next = NULL;
+    (*thisUser)->ptrUserInfo = userInfo;
+    (*thisUser)->next = NULL;
+}
 
 void setGameInfoFrontend(GameInfoFrontend *gameInfoFrontend) {
     for (int y = 0; y < MAPA_LINHAS; ++y)
@@ -8,7 +31,6 @@ void setGameInfoFrontend(GameInfoFrontend *gameInfoFrontend) {
             gameInfoFrontend->mapa[y][x] = ' ';
     gameInfoFrontend->ptrRocksHeader = NULL;
     gameInfoFrontend->ptrBlocksHeader = NULL;
-    gameInfoFrontend->ptrThisUser = NULL;
     gameInfoFrontend->ptrOtherUsersHeader = NULL;
     gameInfoFrontend->tempoJogo = 0;
     gameInfoFrontend->nivel = 0;
