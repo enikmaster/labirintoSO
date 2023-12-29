@@ -2,6 +2,18 @@
 #include "jogoUI.h"
 #include "../BACKEND/motor.h"
 
+void setGameInfoFrontend(GameInfoFrontend *gameInfoFrontend) {
+    for (int y = 0; y < MAPA_LINHAS; ++y)
+        for (int x = 0; x < MAPA_COLUNAS; ++x)
+            gameInfoFrontend->mapa[y][x] = ' ';
+    gameInfoFrontend->ptrRocksHeader = NULL;
+    gameInfoFrontend->ptrBlocksHeader = NULL;
+    gameInfoFrontend->ptrThisUser = NULL;
+    gameInfoFrontend->ptrOtherUsersHeader = NULL;
+    gameInfoFrontend->tempoJogo = 0;
+    gameInfoFrontend->nivel = 0;
+}
+
 int verificaComandoUI(char *comando, WINDOW *janelaBaixo) {
     comando[strlen(comando)] = '\0';
     for (int i = 0; i < strlen(comando); ++i) {
@@ -121,4 +133,60 @@ void trataTeclado(WINDOW *janelaTopo, WINDOW *janelaBaixo) {
         wrefresh(janelaTopo);
         tecla = wgetch(janelaTopo);
     }
+}
+
+void fecharRocks(pRock ptrRocksHeader) {
+    pRock libertaRock;
+    pPosition libertaPosicao;
+    while (ptrRocksHeader != NULL) {
+        libertaRock = ptrRocksHeader;
+        libertaPosicao = libertaRock->position;
+        ptrRocksHeader = ptrRocksHeader->next;
+        free(libertaPosicao);
+        free(libertaRock);
+    }
+}
+
+void fecharBlocks(pBlock ptrBlocksHeader) {
+    pBlock libertaBlock;
+    pPosition libertaPosicao;
+    while (ptrBlocksHeader != NULL) {
+        libertaBlock = ptrBlocksHeader;
+        libertaPosicao = libertaBlock->position;
+        ptrBlocksHeader = ptrBlocksHeader->next;
+        free(libertaPosicao);
+        free(libertaBlock);
+    }
+}
+
+void fecharThisUser(pUser *ptrThisUser) {
+    free((*ptrThisUser)->ptrUserInfo->position);
+    free((*ptrThisUser)->ptrUserInfo);
+    free((*ptrThisUser));
+    *ptrThisUser = NULL;
+}
+
+void fecharUsers(pUser ptrThisUser, pUserInfo ptrOtherUsersHeader) {
+    if (ptrThisUser != NULL) fecharThisUser(&ptrThisUser);
+    if (ptrOtherUsersHeader == NULL) return;
+    pUserInfo libertaUserInfo;
+    pPosition libertaPosicao;
+    while (ptrOtherUsersHeader != NULL) {
+        libertaUserInfo = ptrOtherUsersHeader;
+        libertaPosicao = libertaUserInfo->position;
+        ptrOtherUsersHeader = ptrOtherUsersHeader->next;
+        free(libertaPosicao);
+        free(libertaUserInfo);
+    }
+}
+
+void fecharCliente(GameInfoFrontend *game) {
+    // liberta a memória das pedras
+    if (game->ptrRocksHeader != NULL) fecharRocks(game->ptrRocksHeader);
+    // liberta a memória dos blocos
+    if (game->ptrBlocksHeader != NULL) fecharBlocks(game->ptrBlocksHeader);
+    // liberta a memória dos users
+    fecharUsers(game->ptrThisUser, game->ptrOtherUsersHeader);
+    // liberta a memória do jogo em si
+    free(game);
 }

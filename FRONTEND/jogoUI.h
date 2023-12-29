@@ -9,6 +9,8 @@
 #include <pthread.h>
 #include <ncurses.h>
 
+void setGameInfoFrontend(GameInfoFrontend *);
+
 void desenhaMapa(WINDOW *, int);
 
 void trataTeclado(WINDOW *, WINDOW *);
@@ -18,5 +20,7 @@ int verificaComandoUI(char *, WINDOW *);
 bool checkIfUserAtivo(char *);
 
 void *threadGerirBackend(void *);
+
+void fecharCliente(GameInfoFrontend *);
 
 #endif

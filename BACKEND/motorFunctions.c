@@ -1,7 +1,6 @@
 #include "../constantes.h"
 #include "motor.h"
 
-char PathGameSetup[TAMANHO_PATH];
 char PathMapaUm[TAMANHO_PATH];
 char PathMapaDois[TAMANHO_PATH];
 char PathMapaTres[TAMANHO_PATH];
@@ -229,32 +228,86 @@ void pathParaVariaveisAmbiente() {
     strcpy(PathMapaTres, getenv("PATH_MAPA_TRES"));
 }
 
-void fecharJogo(GameSetup *gameSetup) {
+// libertar memória
+void fecharSetup(Setup *setup) {
+    free(setup);
+    setup = NULL;
+}
+
+void fecharUsers(pUser users) {
+    pUserInfo libertaUserInfo;
+    pPosition libertaPosicao;
+    while (users != NULL) {
+        libertaUserInfo = users->ptrUserInfo;
+        libertaPosicao = libertaUserInfo->position;
+        users = users->next;
+        free(libertaPosicao);
+        free(libertaUserInfo);
+    }
+}
+
+void fecharUsersAtivosEspera(pUser usersAtivos, pUser usersEspera) {
+    if (usersAtivos != NULL) fecharUsers(usersAtivos);
+    if (usersEspera != NULL) fecharUsers(usersEspera);
+}
+
+void fecharPositions(pPosition posicoes) {
+    pPosition libertaPosicao;
+    while (posicoes != NULL) {
+        libertaPosicao = posicoes;
+        posicoes = posicoes->next;
+        free(libertaPosicao);
+    }
+}
+
+void fecharRocks(pRock rocks) {
+    pRock libertaRock;
+    pPosition libertaPosicao;
+    while (rocks != NULL) {
+        libertaRock = rocks;
+        libertaPosicao = libertaRock->position;
+        rocks = rocks->next;
+        free(libertaPosicao);
+        free(libertaRock);
+    }
+}
+
+void fecharBlocks(pBlock blocks) {
+    pBlock libertaBlock;
+    pPosition libertaPosicao;
+    while (blocks != NULL) {
+        libertaBlock = blocks;
+        libertaPosicao = libertaBlock->position;
+        blocks = blocks->next;
+        free(libertaPosicao);
+        free(libertaBlock);
+    }
+}
+
+void fecharMapas(pMap mapa) {
     pMap libertaMapa;
-    while (gameSetup->ptrMapa != NULL) {
-        libertaMapa = gameSetup->ptrMapa;
-        pPosition libertaPosicao;
-        while (gameSetup->ptrMapa->ptrInicioHeader != NULL) {
-            libertaPosicao = gameSetup->ptrMapa->ptrInicioHeader;
-            gameSetup->ptrMapa->ptrInicioHeader = gameSetup->ptrMapa->ptrInicioHeader->next;
-            free(libertaPosicao);
-        }
-        free(gameSetup->ptrMapa->ptrMeta);
-        gameSetup->ptrMapa = gameSetup->ptrMapa->next;
+    pPosition libertaPosicao = NULL;
+    while (mapa != NULL) {
+        libertaMapa = mapa;
+        if (libertaMapa->ptrMeta != NULL) free(libertaMapa->ptrMeta);
+        if (libertaMapa->ptrInicioHeader != NULL) fecharPositions(libertaMapa->ptrInicioHeader);
+//        if(libertaMapa->ptrRocksHeader != NULL) fecharRocks(libertaMapa->ptrRocksHeader);
+//        if(libertaMapa->ptrBlocksHeader != NULL) fecharBlocks(libertaMapa->ptrBlocksHeader);
+        mapa = mapa->next;
         free(libertaMapa);
     }
-    pUser libertaUser;
-    while (gameSetup->ptrUsersAtivosHeader != NULL) {
-        libertaUser = gameSetup->ptrUsersAtivosHeader;
-        gameSetup->ptrUsersAtivosHeader = gameSetup->ptrUsersAtivosHeader->next;
-        free(libertaUser);
-    }
-    while (gameSetup->ptrUsersEsperaHeader != NULL) {
-        libertaUser = gameSetup->ptrUsersEsperaHeader;
-        gameSetup->ptrUsersEsperaHeader = gameSetup->ptrUsersEsperaHeader->next;
-        free(libertaUser);
-    }
-    free(gameSetup->ptrSetup);
+}
+
+void fecharJogo(GameSetup *gameSetup) {
+    // libertar a memória do setup
+    if (gameSetup->ptrSetup != NULL) fecharSetup(gameSetup->ptrSetup);
+    gameSetup->ptrSetup = NULL;
+    // libertar a memória dos users
+    fecharUsersAtivosEspera(gameSetup->ptrUsersAtivosHeader, gameSetup->ptrUsersEsperaHeader);
+    // libertar a memória dos mapas
+    if (gameSetup->ptrMapa != NULL) fecharMapas(gameSetup->ptrMapa);
+    // destruir o mutex
+    pthread_mutex_destroy(&gameSetup->mutexJogadores);
 }
 
 void sigHandler(int sig) {

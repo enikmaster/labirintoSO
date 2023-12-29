@@ -32,6 +32,7 @@ extern char PathMapaUm[TAMANHO_PATH];
 extern char PathMapaDois[TAMANHO_PATH];
 extern char PathMapaTres[TAMANHO_PATH];
 
+// Estruturas de dados
 typedef enum {
     tipo_inscricao,
     tipo_movimento,
@@ -132,14 +133,21 @@ struct Position {
     pPosition next;
 };
 //  - User - dados sobre um utilizador
+typedef struct UserInfo UserInfo, *pUserInfo;
+struct UserInfo {
+    char identificador;
+    pPosition position;
+    pUserInfo next;
+};
+
 typedef struct User User, *pUser;
 struct User {
     int pid;
     char username[TAMANHO_NAMES];
-    char identificador;
-    pPosition position;
+    pUserInfo ptrUserInfo;
     pUser next;
 };
+
 //  - Rock - dados sobre uma pedra
 typedef struct Rock Rock, *pRock;
 struct Rock {
@@ -161,8 +169,8 @@ typedef struct Map Map, *pMap;
 struct Map {
     pPosition ptrMeta;
     pPosition ptrInicioHeader;
-    //pRock ptrRocksHeader;
-    //pBlock ptrBlocksHeader;
+//    pRock ptrRocksHeader;
+//    pBlock ptrBlocksHeader;
     char mapa[MAPA_LINHAS][MAPA_COLUNAS];
     pMap next;
 };
@@ -186,8 +194,8 @@ typedef struct {
     pSetup ptrSetup;
     pUser ptrUsersAtivosHeader;
     pUser ptrUsersEsperaHeader;
-    //pBot ptrBotsHeader;
     pMap ptrMapa;
+//    pBot ptrBotsHeader; // TODO: ainda falta ver isto
     bool jogoAtivo;
     int usersAtivos;
     int usersEspera;
@@ -195,6 +203,24 @@ typedef struct {
     int nivel;
     pthread_mutex_t mutexJogadores;
 } GameSetup;
+
+typedef struct GameInfoFrontend GameInfoFrontend, *pGameInfoFrontend;
+struct GameInfoFrontend {
+    char mapa[MAPA_LINHAS][MAPA_COLUNAS];
+    pRock ptrRocksHeader;
+    pBlock ptrBlocksHeader;
+    pUser ptrThisUser;
+    pUserInfo ptrOtherUsersHeader;
+    int tempoJogo;
+    int nivel;
+};
+
+typedef struct ThreadDataFrontend ThreadDataFrontend, *pThreadDataFrontend;
+struct ThreadDataFrontend {
+    bool continua;
+    GameInfoFrontend *ptrGameInfo;
+    //pthread_mutex_t *pTrinco;
+};
 
 typedef struct ThreadData ThreadData, *pThreadData;
 struct ThreadData {
