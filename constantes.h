@@ -86,6 +86,8 @@ struct MsgFrontEnd {
 typedef enum {
     tipo_retorno_inscricao,
     tipo_retorno_players,
+    tipo_retorno_chat,
+    tipo_terminar_programa
 } TipoBackEnd;
 
 // definir aqui os tipos de mensagem de retorno
@@ -110,6 +112,12 @@ struct TipoRetornoChat {
     char mensagem[TAMANHO_CONTEUDO]; // mensagem do jogador
 };
 
+typedef struct TipoTerminarPrograma TipoTerminarPrograma;
+struct TipoTerminarPrograma {
+    char origem[TAMANHO_NAMES]; // nome da origem (neste caso servidor)
+    char mensagem[TAMANHO_CONTEUDO]; // mensagem do jogador
+};
+
 typedef struct MsgBackEnd MsgBackEnd;
 struct MsgBackEnd {
     TipoBackEnd tipoMensagem;
@@ -117,6 +125,7 @@ struct MsgBackEnd {
         TipoRetornoInscricao retornoInscricao;
         TipoRetornoPlayers retornoPlayers;
         TipoRetornoChat retornoChat;
+        TipoTerminarPrograma terminarPrograma;
     } informacao;
 };
 
@@ -220,14 +229,14 @@ typedef struct ThreadDataFrontend ThreadDataFrontend, *pThreadDataFrontend;
 struct ThreadDataFrontend {
     bool continua;
     GameInfoFrontend *ptrGameInfo;
-    //pthread_mutex_t *pTrinco;
+    pthread_mutex_t trinco;
 };
 
 typedef struct ThreadData ThreadData, *pThreadData;
 struct ThreadData {
     bool continua;
     GameSetup *ptrGameSetup;
-    //pthread_mutex_t *pTrinco;
+    pthread_mutex_t trinco;
 };
 
 #endif

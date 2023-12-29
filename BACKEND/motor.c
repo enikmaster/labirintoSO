@@ -24,7 +24,8 @@ int main(int argc, char *argv[]) {
     }
     ThreadData tData = {
             .continua = false,
-            .ptrGameSetup = &gameSetup
+            .ptrGameSetup = &gameSetup,
+            .trinco = PTHREAD_MUTEX_INITIALIZER
     };
     // thread para lidar com a comunicacao com o frontend
     pthread_t threadGerirFrontendId;
@@ -33,11 +34,11 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
     // thread para lidar com os timers do jogo, após os jogadores terem feito a inscrição
-    pthread_t threadTimersId;
+    /*pthread_t threadTimersId;
     if (pthread_create(&threadTimersId, NULL, threadTimers, (void *) &tData) != 0) {
         perror("[ERRO] Erro ao criar a thread dos timers.\n");
         exit(-1);
-    }
+    }*/
 
     int controlo = 0;
     char comando[TAMANHO_COMANDO];
@@ -91,14 +92,43 @@ int main(int argc, char *argv[]) {
     } while (controlo != 6);
     // fechar a thread
     tData.continua = true;
+    int forceExit = open(SRV_FIFO, O_WRONLY);
+    if (forceExit == -1) {
+        perror("[ERRO] Erro ao abrir o pipe do servidor.\n");
+        fecharJogo(&gameSetup);
+        exit(-1);
+    }
+    MsgBackEnd terminarPrograma = {
+            .tipoMensagem = tipo_terminar_programa
+    };
+    strcpy(terminarPrograma.informacao.terminarPrograma.origem, "motor");
+    strcpy(terminarPrograma.informacao.terminarPrograma.mensagem, "terminar");
+    if (write(forceExit, &terminarPrograma, sizeof(terminarPrograma)) == -1) {
+        perror("[ERRO] Erro ao escrever no pipe do servidor.\n");
+        close(forceExit);
+        fecharJogo(&gameSetup);
+        exit(-1);
+    }
     if (pthread_join(threadGerirFrontendId, NULL) != 0) {
         perror("[ERRO] Erro ao esperar pela thread da comunicação do frontend.\n");
+        close(forceExit);
+        fecharJogo(&gameSetup);
+        exit(-1);
+    }
+    close(forceExit);
+    /*tData.continua = true;
+    forceExit = open(SRV_FIFO, O_WRONLY);
+    if (forceExit == -1) {
+        perror("[ERRO] Erro ao abrir o pipe do servidor.\n");
+        fecharJogo(&gameSetup);
         exit(-1);
     }
     if (pthread_join(threadTimersId, NULL) != 0) {
         perror("[ERRO] Erro ao fechar a thread dos timers.\n");
+        fecharJogo(&gameSetup);
         exit(-1);
     }
+    close(forceExit);*/
     // fechar o pipe do servidor
     unlink(SRV_FIFO);
     fecharJogo(&gameSetup); // esta é a última coisa a fazer antes de sair

@@ -9,7 +9,8 @@ int comandoUsers(GameSetup *gameSetup) {
     } else {
         ptrUser = gameSetup->ptrUsersAtivosHeader;
         while (ptrUser != NULL) {
-            printf("[INFO] Jogador ativo %d: %s - '%c'\n", ptrUser->pid, ptrUser->username, ptrUser->identificador);
+            printf("[INFO] Jogador ativo %d: %s - '%c'\n", ptrUser->pid, ptrUser->username,
+                   ptrUser->ptrUserInfo->identificador);
             fflush(stdout);
             ptrUser = ptrUser->next;
         }
@@ -20,7 +21,8 @@ int comandoUsers(GameSetup *gameSetup) {
     } else {
         ptrUser = gameSetup->ptrUsersEsperaHeader;
         while (ptrUser != NULL) {
-            printf("[INFO] Jogador em espera %d: %s - '%c'\n", ptrUser->pid, ptrUser->username, ptrUser->identificador);
+            printf("[INFO] Jogador em espera %d: %s - '%c'\n", ptrUser->pid, ptrUser->username,
+                   ptrUser->ptrUserInfo->identificador);
             fflush(stdout);
             ptrUser = ptrUser->next;
         }
@@ -74,9 +76,9 @@ int comandoKick(GameSetup *gameSetup, char *username) {
                 : (ptrUserAnterior->next = ptrUser->next);
                 gameSetup->usersAtivos--;
                 printf("[INFO] Jogador kickado %d: %s - '%c'\n", ptrUser->pid, ptrUser->username,
-                       ptrUser->identificador);
+                       ptrUser->ptrUserInfo->identificador);
                 fflush(stdout);
-                free(ptrUser->position);
+                free(ptrUser->ptrUserInfo->position);
                 free(ptrUser);
                 return 0;
             }

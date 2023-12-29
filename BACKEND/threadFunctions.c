@@ -25,7 +25,7 @@ void *threadGerirFrontend(void *arg) {
         pthread_exit(NULL);
     }
     MsgFrontEnd msgFrontEnd;
-    do {
+    while (tData->continua == false) {
         memset(&msgFrontEnd, 0, sizeof(msgFrontEnd));
         ssize_t bytesRead = read(serverPipe, &msgFrontEnd, sizeof(msgFrontEnd));
         if (bytesRead == 0) continue;
@@ -55,17 +55,27 @@ void *threadGerirFrontend(void *arg) {
                     }
                     newUser->pid = msgFrontEnd.informacao.inscricao.pid;
                     strcpy(newUser->username, msgFrontEnd.informacao.inscricao.username);
-                    newUser->position = malloc(sizeof(Position));
-                    if (newUser->position == NULL) {
-                        perror("[ERRO] Erro ao alocar memória para a posição do novo user.\n");
-                        free(newUser->position);
+                    pUserInfo newUserInfo = malloc(sizeof(UserInfo));
+                    if (newUserInfo == NULL) {
+                        perror("[ERRO] Erro ao alocar memória para o novo user info.\n");
                         free(newUser);
                         continue;
                     }
+                    newUser->ptrUserInfo = newUserInfo;
+                    pPosition newPosition = malloc(sizeof(Position));
+                    if (newPosition == NULL) {
+                        perror("[ERRO] Erro ao alocar memória para a nova posição.\n");
+                        free(newUser);
+                        free(newUserInfo);
+                        continue;
+                    }
+                    newUser->ptrUserInfo->position = newPosition;
                     pthread_mutex_lock(&tData->ptrGameSetup->mutexJogadores);
-                    newUser->identificador = toupper(newUser->username[0]);
-                    newUser->position->x = 0;
-                    newUser->position->y = 0;
+                    newUser->ptrUserInfo->identificador = toupper(newUser->username[0]);
+                    newUser->ptrUserInfo->position->x = 0;
+                    newUser->ptrUserInfo->position->y = 0;
+                    newUser->ptrUserInfo->position->next = NULL;
+                    newUser->ptrUserInfo->next = NULL;
                     newUser->next = NULL;
                     thisUser->next = newUser;
                     tData->ptrGameSetup->usersAtivos++;
@@ -100,16 +110,27 @@ void *threadGerirFrontend(void *arg) {
                         }
                         newUser->pid = msgFrontEnd.informacao.inscricao.pid;
                         strcpy(newUser->username, msgFrontEnd.informacao.inscricao.username);
-                        newUser->position = malloc(sizeof(Position));
-                        if (newUser->position == NULL) {
-                            perror("[ERRO] Erro ao alocar memória para a posição do novo user.\n");
+                        pUserInfo newUserInfo = malloc(sizeof(UserInfo));
+                        if (newUserInfo == NULL) {
+                            perror("[ERRO] Erro ao alocar memória para o novo user info.\n");
                             free(newUser);
                             continue;
                         }
+                        newUser->ptrUserInfo = newUserInfo;
+                        pPosition newPosition = malloc(sizeof(Position));
+                        if (newPosition == NULL) {
+                            perror("[ERRO] Erro ao alocar memória para a nova posição.\n");
+                            free(newUser);
+                            free(newUserInfo);
+                            continue;
+                        }
+                        newUser->ptrUserInfo->position = newPosition;
                         pthread_mutex_lock(&tData->ptrGameSetup->mutexJogadores);
-                        newUser->identificador = toupper(newUser->username[0]);
-                        newUser->position->x = 0;
-                        newUser->position->y = 0;
+                        newUser->ptrUserInfo->identificador = toupper(newUser->username[0]);
+                        newUser->ptrUserInfo->position->x = 0;
+                        newUser->ptrUserInfo->position->y = 0;
+                        newUser->ptrUserInfo->position->next = NULL;
+                        newUser->ptrUserInfo->next = NULL;
                         newUser->next = NULL;
                         thisUser->next = newUser;
                         tData->ptrGameSetup->usersEspera++;
@@ -194,7 +215,8 @@ void *threadGerirFrontend(void *arg) {
             case tipo_terminar:
                 break;
         }
-    } while (!tData->continua);
+
+    }
     close(serverPipe);
     pthread_exit(NULL);
 }
