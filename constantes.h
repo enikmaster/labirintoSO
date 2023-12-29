@@ -100,6 +100,7 @@ typedef struct TipoRetornoPlayers TipoRetornoPlayers;
 struct TipoRetornoPlayers {
     char origem[TAMANHO_NAMES]; // nome da origem (neste caso servidor)
     char listaJogadores[MAX_USERS][TAMANHO_NAMES]; // lista de jogadores ativos
+    char mensagem[TAMANHO_CONTEUDO]; // mensagem do jogador
 };
 
 typedef struct TipoRetornoChat TipoRetornoChat;
