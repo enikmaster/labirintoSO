@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
     // thread para lidar com a comunicacao com o frontend
     pthread_t threadGerirFrontendId;
     if (pthread_create(&threadGerirFrontendId, NULL, threadGerirFrontend, (void *) &tData) != 0) {
-        perror("[ERRO] Erro ao criar a thread dae comunicacao com o frontend.\n");
+        perror("[ERRO] Erro ao criar a thread da comunicação do frontend.\n");
         exit(-1);
     }
     // thread para lidar com os timers do jogo, após os jogadores terem feito a inscrição
@@ -90,13 +90,16 @@ int main(int argc, char *argv[]) {
         }*/
     } while (controlo != 6);
     // fechar a thread
-    tData.continua = 0;
+    tData.continua = true;
+    if (pthread_join(threadGerirFrontendId, NULL) != 0) {
+        perror("[ERRO] Erro ao esperar pela thread da comunicação do frontend.\n");
+        exit(-1);
+    }
     if (pthread_join(threadTimersId, NULL) != 0) {
         perror("[ERRO] Erro ao fechar a thread dos timers.\n");
         exit(-1);
     }
     // fechar o pipe do servidor
-    //close(fd[0]);
     unlink(SRV_FIFO);
     fecharJogo(&gameSetup); // esta é a última coisa a fazer antes de sair
     exit(0);

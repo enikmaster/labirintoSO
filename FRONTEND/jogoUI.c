@@ -14,9 +14,17 @@ int main(int argc, char *argv[]) {
         printf("[ERRO] Número de argumentos inválido.\n");
         exit(-1);
     }
+
+    GameInfoFrontend gameInfoFrontend;
+    setGameInfoFrontend(&gameInfoFrontend);
+    ThreadDataFrontend tData = {
+            .continua = false,
+            .ptrGameInfo = &gameInfoFrontend
+    };
     pthread_t threadGerirBackendId;
-    if (pthread_create(&threadGerirBackendId, NULL, threadGerirBackend, (void *) argv[1]) != 0) {
-        perror("[ERRO] Erro ao criar a thread do backend.\n");
+    if (pthread_create(&threadGerirBackendId, NULL, threadGerirBackend, (void *) &tData) != 0) {
+        perror("[ERRO] Erro ao criar a thread da comunicação do backend.\n");
+        fecharCliente(&gameInfoFrontend);
         exit(-1);
     }
     initscr();
@@ -50,6 +58,12 @@ int main(int argc, char *argv[]) {
     wrefresh(janelaBaixo); // função que faz atualiza o ecrã com as operações realizadas anteriormente
     delwin(janelaBaixo);  // apaga a janela.
     endwin();  // encerra a utilização do ncurses. Muito importante senão o terminal fica inconsistente (idem se sair por outras vias)
-
+    tData.continua = true;
+    if (pthread_join(threadGerirBackendId, NULL) != 0) {
+        perror("[ERRO] Erro ao esperar pela thread da comunicação do backend.\n");
+        fecharCliente(&gameInfoFrontend);
+        exit(-1);
+    }
+    fecharCliente(&gameInfoFrontend);
     exit(0);
 }
