@@ -36,13 +36,8 @@ void *threadGerirFrontend(void *arg) {
         switch (msgFrontEnd.tipoMensagem) {
             case tipo_inscricao: // os jogadores inscrevem-se no jogo
                 if (tData->ptrGameSetup->usersAtivos < MAX_USERS) { // ainda há espaço para inscrições
-                    int pipeJogador = open(msgFrontEnd.informacao.inscricao.username, O_WRONLY);
-                    if (pipeJogador == -1) {
-                        perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
-                        continue;
-                    }
                     pUser thisUser = tData->ptrGameSetup->ptrUsersAtivosHeader;
-                    for (int i = 0; i < tData->ptrGameSetup->usersAtivos; ++i) {
+                    while (thisUser != NULL && thisUser->next != NULL) {
                         thisUser = thisUser->next;
                     }
                     pUser newUser = malloc(sizeof(User));
@@ -75,9 +70,15 @@ void *threadGerirFrontend(void *arg) {
                     newUser->ptrUserInfo->position->next = NULL;
                     newUser->ptrUserInfo->next = NULL;
                     newUser->next = NULL;
-                    thisUser = newUser;
+                    (thisUser == NULL) ? (tData->ptrGameSetup->ptrUsersAtivosHeader = newUser)
+                                       : (thisUser->next = newUser);
                     tData->ptrGameSetup->usersAtivos++;
                     pthread_mutex_unlock(&tData->ptrGameSetup->mutexJogadores);
+                    int pipeJogador = open(msgFrontEnd.informacao.inscricao.username, O_WRONLY);
+                    if (pipeJogador == -1) {
+                        perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
+                        continue;
+                    }
                     MsgBackEnd msgBackEnd;
                     msgBackEnd.tipoMensagem = tipo_retorno_inscricao;
                     strcpy(msgBackEnd.informacao.retornoInscricao.origem, "Servidor");
@@ -90,13 +91,8 @@ void *threadGerirFrontend(void *arg) {
                     close(pipeJogador);
                 } else { // não há espaço para inscrições, verifica lista de espera
                     if (tData->ptrGameSetup->usersEspera < MAX_USERS) {
-                        int pipeJogador = open(msgFrontEnd.informacao.inscricao.username, O_WRONLY);
-                        if (pipeJogador == -1) {
-                            perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
-                            continue;
-                        }
                         pUser thisUser = tData->ptrGameSetup->ptrUsersEsperaHeader;
-                        for (int i = 0; i < tData->ptrGameSetup->usersEspera; ++i) {
+                        while (thisUser != NULL && thisUser->next != NULL) {
                             thisUser = thisUser->next;
                         }
                         pUser newUser = malloc(sizeof(User));
@@ -128,9 +124,15 @@ void *threadGerirFrontend(void *arg) {
                         newUser->ptrUserInfo->position->next = NULL;
                         newUser->ptrUserInfo->next = NULL;
                         newUser->next = NULL;
-                        thisUser->next = newUser;
+                        (thisUser == NULL) ? (tData->ptrGameSetup->ptrUsersEsperaHeader = newUser)
+                                           : (thisUser->next = newUser);
                         tData->ptrGameSetup->usersEspera++;
                         pthread_mutex_unlock(&tData->ptrGameSetup->mutexJogadores);
+                        int pipeJogador = open(msgFrontEnd.informacao.inscricao.username, O_WRONLY);
+                        if (pipeJogador == -1) {
+                            perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
+                            continue;
+                        }
                         MsgBackEnd msgBackEnd;
                         msgBackEnd.tipoMensagem = tipo_retorno_inscricao;
                         strcpy(msgBackEnd.informacao.retornoInscricao.origem, "Servidor");

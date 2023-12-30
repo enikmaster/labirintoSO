@@ -42,7 +42,7 @@ void *threadGerirBackend(void *arg) {
         }
         switch (msgBackEnd.tipoMensagem) {
             case tipo_retorno_inscricao:
-                wprintw(tData->janelaLogs, "%s", msgBackEnd.informacao.retornoInscricao.mensagem);
+                mvwprintw(tData->janelaLogs, 1, 1, "%s", msgBackEnd.informacao.retornoInscricao.mensagem);
                 wrefresh(tData->janelaLogs);
                 break;
             case tipo_retorno_players:

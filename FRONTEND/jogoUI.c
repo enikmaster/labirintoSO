@@ -2,9 +2,6 @@
 #include "jogoUI.h"
 
 int main(int argc, char *argv[]) {
-    int controlo = 0;
-    char comando[TAMANHO_NAMES] = {'\0'};
-
     if (access(SRV_FIFO, F_OK) != 0) {
         perror("[ERRO] O servidor não está a correr.\n");
         exit(-1);
@@ -19,7 +16,6 @@ int main(int argc, char *argv[]) {
         perror("[ERRO] Erro a abrir o pipe do jogador");
         exit(-1);
     }
-
 
     GameInfoFrontend gameInfoFrontend;
     pUser thisUser = malloc(sizeof(User));
