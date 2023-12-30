@@ -42,9 +42,9 @@ void *threadTimers(void *);
 // comandos do backend
 int comandoUsers(GameSetup *);
 
-int comandoBots();
+int comandoBots(GameSetup *);
 
-int comandoBmov();
+int comandoBmov(GameSetup *);
 
 int comandoRbm();
 

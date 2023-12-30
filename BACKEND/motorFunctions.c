@@ -19,15 +19,16 @@ void sinalizaBot(int sig, siginfo_t *info, void *context) {
 }
 
 void setGameSetup(GameSetup *gameSetup) {
+    gameSetup->ptrSetup = NULL;
+    gameSetup->ptrUsersAtivosHeader = NULL;
+    gameSetup->ptrUsersEsperaHeader = NULL;
+    gameSetup->ptrMapa = NULL;
+    gameSetup->ptrBotsHeader = NULL;
     gameSetup->jogoAtivo = false;
     gameSetup->usersAtivos = 0;
     gameSetup->usersEspera = 0;
     gameSetup->tempoJogo = 0;
     gameSetup->nivel = 1;
-    gameSetup->ptrMapa = NULL;
-    gameSetup->ptrSetup = NULL;
-    gameSetup->ptrUsersAtivosHeader = NULL;
-    gameSetup->ptrUsersEsperaHeader = NULL;
     pthread_mutex_init(&gameSetup->mutexJogadores, NULL);
     char *endptr;
     gameSetup->ptrSetup = malloc(sizeof(Setup));
@@ -152,6 +153,8 @@ void loadMapa(GameSetup *gameSetup, int nivel) {
         }
         novoMapa->ptrMeta = NULL;
         novoMapa->ptrInicioHeader = NULL;
+        novoMapa->ptrRocksHeader = NULL;
+        novoMapa->ptrBlocksHeader = NULL;
         novoMapa->next = NULL;
         preencheMapa(novoMapa, ficheiro);
         if (thisMapa == NULL) {
@@ -291,10 +294,19 @@ void fecharMapas(pMap mapa) {
         libertaMapa = mapa;
         if (libertaMapa->ptrMeta != NULL) free(libertaMapa->ptrMeta);
         if (libertaMapa->ptrInicioHeader != NULL) fecharPositions(libertaMapa->ptrInicioHeader);
-//        if(libertaMapa->ptrRocksHeader != NULL) fecharRocks(libertaMapa->ptrRocksHeader);
-//        if(libertaMapa->ptrBlocksHeader != NULL) fecharBlocks(libertaMapa->ptrBlocksHeader);
+        if (libertaMapa->ptrRocksHeader != NULL) fecharRocks(libertaMapa->ptrRocksHeader);
+        if (libertaMapa->ptrBlocksHeader != NULL) fecharBlocks(libertaMapa->ptrBlocksHeader);
         mapa = mapa->next;
         free(libertaMapa);
+    }
+}
+
+void fecharBots(pBot bots) {
+    pBot libertaBot;
+    while (bots != NULL) {
+        libertaBot = bots;
+        bots = bots->next;
+        free(libertaBot);
     }
 }
 
@@ -306,6 +318,8 @@ void fecharJogo(GameSetup *gameSetup) {
     fecharUsersAtivosEspera(gameSetup->ptrUsersAtivosHeader, gameSetup->ptrUsersEsperaHeader);
     // libertar a memória dos mapas
     if (gameSetup->ptrMapa != NULL) fecharMapas(gameSetup->ptrMapa);
+    // libertar a memória dos bots
+    if (gameSetup->ptrBotsHeader != NULL) fecharBots(gameSetup->ptrBotsHeader);
     // destruir o mutex
     pthread_mutex_destroy(&gameSetup->mutexJogadores);
 }

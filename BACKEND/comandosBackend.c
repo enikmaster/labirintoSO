@@ -30,12 +30,24 @@ int comandoUsers(GameSetup *gameSetup) {
     return 0;
 }
 
-int comandoBots() {
-    // TODO: implementar porque não sei bem o que fazer aqui
+int comandoBots(GameSetup *gameSetup) {
+    pBot ptrBot;
+    if (gameSetup->ptrBotsHeader == NULL) {
+        printf("[INFO] Não existem bots ativos.\n");
+        fflush(stdout);
+    } else {
+        ptrBot = gameSetup->ptrBotsHeader;
+        while (ptrBot != NULL) {
+            printf("[INFO] Bot ativo: pid - %d | duração - %ds\n", ptrBot->pid, ptrBot->duracao);
+            fflush(stdout);
+            ptrBot = ptrBot->next;
+        }
+    }
     return 0;
 }
 
-int comandoBmov() {
+int comandoBmov(GameSetup *gameSetup) {
+
     return 0;
 }
 
