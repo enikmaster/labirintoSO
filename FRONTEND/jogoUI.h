@@ -17,7 +17,7 @@ void setGameInfoFrontend(GameInfoFrontend *);
 
 void desenhaMapa(WINDOW *, int);
 
-void trataTeclado(WINDOW *, WINDOW *);
+void trataTeclado(ThreadDataFrontend *);
 
 int verificaComandoUI(char *, WINDOW *);
 

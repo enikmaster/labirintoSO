@@ -50,26 +50,26 @@ struct TipoInscricao {
 
 typedef struct TipoMovimento TipoMovimento;
 struct TipoMovimento {
-    int pid; // pid do jogador
-    char movimento; // movimento do jogador (char ou int?)
+    char username[TAMANHO_NAMES];
+    int movimento; // movimento do jogador (int)
 };
 
 typedef struct TipoInformacao TipoInformacao; // quando o user pede a lista de jogadores ativos
 struct TipoInformacao {
-    int pid; // pid do jogador
-    char lista[500]; // lista de jogadores
+    char username[TAMANHO_NAMES];
+    //char lista[500]; // lista de jogadores
 };
 
 typedef struct TipoMensagem TipoMensagem;
 struct TipoMensagem {
-    int pidOrigem; // pid do jogador
+    char username[TAMANHO_NAMES];
     char usernameDestino[TAMANHO_NAMES]; // username do jogador
     char mensagem[TAMANHO_CONTEUDO]; // mensagem do jogador
 };
 
 typedef struct TipoTerminar TipoTerminar;
 struct TipoTerminar {
-    int pid; // pid do jogador
+    char username[TAMANHO_NAMES];
 };
 
 typedef struct MsgFrontEnd MsgFrontEnd;
@@ -232,6 +232,7 @@ struct ThreadDataFrontend {
     WINDOW *janelaMapa;
     WINDOW *janelaChat;
     WINDOW *janelaLogs;
+    WINDOW *janelaComandos;
     GameInfoFrontend *ptrGameInfo;
     pthread_mutex_t trinco;
 };
