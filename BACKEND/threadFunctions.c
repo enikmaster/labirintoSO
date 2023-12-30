@@ -38,6 +38,7 @@ void *threadGerirFrontend(void *arg) {
                 if (tData->ptrGameSetup->usersAtivos < MAX_USERS) { // ainda há espaço para inscrições
                     char pipeName[TAMANHO_NAMES];
                     sprintf(pipeName, "cli%d", msgFrontEnd.informacao.inscricao.pid);
+                    //sleep(1);
                     int pipeJogador = open(pipeName, O_WRONLY);
                     if (pipeJogador == -1) {
                         perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
@@ -77,7 +78,7 @@ void *threadGerirFrontend(void *arg) {
                     newUser->ptrUserInfo->position->next = NULL;
                     newUser->ptrUserInfo->next = NULL;
                     newUser->next = NULL;
-                    thisUser->next = newUser;
+                    thisUser = newUser;
                     tData->ptrGameSetup->usersAtivos++;
                     pthread_mutex_unlock(&tData->ptrGameSetup->mutexJogadores);
                     MsgBackEnd msgBackEnd;
@@ -172,9 +173,7 @@ void *threadGerirFrontend(void *arg) {
             case tipo_informacao:
                 // le pedido do cliente e processa-o
                 if (msgFrontEnd.informacao.informacao.pid >= 0) {
-                    /*
-                     * 1. Criar um obj MsgBackend
-                     */
+
                     char pipeName[TAMANHO_NAMES];
                     sprintf(pipeName, "cli%d", msgFrontEnd.informacao.informacao.pid);
                     int pipeJogador = open(pipeName, O_WRONLY);
@@ -206,7 +205,6 @@ void *threadGerirFrontend(void *arg) {
                         continue;
                     }
                     close(pipeJogador);
-
                 }
 
                 break;

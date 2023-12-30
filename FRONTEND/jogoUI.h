@@ -10,7 +10,6 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
-#include <ncurses.h>
 
 void setThisUser(pUser *, char *);
 

@@ -23,6 +23,7 @@
 
 #include <pthread.h>
 #include <stdbool.h>
+#include <ncurses.h>
 
 extern char Inscricao[TAMANHO_PATH];
 extern char NPlayers[TAMANHO_PATH];
@@ -228,6 +229,9 @@ struct GameInfoFrontend {
 typedef struct ThreadDataFrontend ThreadDataFrontend, *pThreadDataFrontend;
 struct ThreadDataFrontend {
     bool continua;
+    WINDOW *janelaMapa;
+    WINDOW *janelaChat;
+    WINDOW *janelaLogs;
     GameInfoFrontend *ptrGameInfo;
     pthread_mutex_t trinco;
 };
