@@ -44,7 +44,7 @@ typedef enum {
 
 typedef struct TipoInscricao TipoInscricao;
 struct TipoInscricao {
-    int pid; // pid do jogador
+    pid_t pid; // pid do jogador
     char username[TAMANHO_NAMES]; // username do jogador
 };
 
@@ -94,7 +94,7 @@ typedef enum {
 // definir aqui os tipos de mensagem de retorno
 typedef struct TipoRetornoInscricao TipoRetornoInscricao;
 struct TipoRetornoInscricao {
-    char origem[TAMANHO_NAMES]; // pid do jogador
+    char origem[TAMANHO_NAMES];
     char mensagem[TAMANHO_CONTEUDO]; // mensagem do jogador
     //char mapa[MAPA_LINHAS][MAPA_COLUNAS]; // mapa do jogo
 };
@@ -153,7 +153,7 @@ struct UserInfo {
 
 typedef struct User User, *pUser;
 struct User {
-    int pid;
+    pid_t pid;
     char username[TAMANHO_NAMES];
     pUserInfo ptrUserInfo;
     pUser next;
@@ -180,15 +180,17 @@ typedef struct Map Map, *pMap;
 struct Map {
     pPosition ptrMeta;
     pPosition ptrInicioHeader;
-//    pRock ptrRocksHeader;
-//    pBlock ptrBlocksHeader;
+    pRock ptrRocksHeader;
+    pBlock ptrBlocksHeader;
     char mapa[MAPA_LINHAS][MAPA_COLUNAS];
     pMap next;
 };
 //  - Bot - dados sobre um bot
 typedef struct Bot Bot, *pBot;
 struct Bot {
-    int pid;
+    pid_t pid;
+    pPosition ptrPosition;
+    int duracao;
     pBot next;
 };
 //  - Setup - dados sobre a configuração inicial do jogo
@@ -206,7 +208,7 @@ typedef struct {
     pUser ptrUsersAtivosHeader;
     pUser ptrUsersEsperaHeader;
     pMap ptrMapa;
-//    pBot ptrBotsHeader; // TODO: ainda falta ver isto
+    pBot ptrBotsHeader; // TODO: ainda falta ver isto
     bool jogoAtivo;
     int usersAtivos;
     int usersEspera;
