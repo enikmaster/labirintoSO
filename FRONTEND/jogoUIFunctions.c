@@ -36,6 +36,7 @@ void setGameInfoFrontend(GameInfoFrontend *gameInfoFrontend) {
     gameInfoFrontend->nivel = 0;
 }
 
+
 int verificaComandoUI(char *comando, WINDOW *janelaBaixo) {
     comando[strlen(comando)] = '\0';
     for (int i = 0; i < strlen(comando); ++i) {
@@ -57,6 +58,7 @@ int verificaComandoUI(char *comando, WINDOW *janelaBaixo) {
             return 0;
         }
     }
+
 
     if (strcmp(comando, "players") == 0) {
         wprintw(janelaBaixo, "\n Comando %s válido ", comando);

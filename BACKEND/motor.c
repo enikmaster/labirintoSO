@@ -12,7 +12,10 @@ int main(int argc, char *argv[]) {
         printf("[ERRO] Já existe um motor a ser executado.\n");
         exit(-1);
     }
-    mkfifo(SRV_FIFO, 0640);
+    if (mkfifo(SRV_FIFO, 0640) == -1) {
+        perror("[ERRO] Erro a abrir o pipe do jogador");
+        exit(-1);
+    }
 
     pathParaVariaveisAmbiente();
     GameSetup gameSetup;
