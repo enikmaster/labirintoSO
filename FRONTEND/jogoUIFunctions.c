@@ -71,9 +71,9 @@ int verificaComandoUI(char *comando, WINDOW *janelaBaixo) {
          * 5. Enviar a mensagem para o servidor
         */
 
-        MsgFrontEnd msgFrontEnd;
+        /*MsgFrontEnd msgFrontEnd;
         msgFrontEnd.tipoMensagem = tipo_informacao;
-        msgFrontEnd.informacao.informacao.pid = getpid();
+        strcpy(msgFrontEnd.informacao.informacao.username, )
 
         char nome[20] = {'\0'};
         int fd;
@@ -89,7 +89,7 @@ int verificaComandoUI(char *comando, WINDOW *janelaBaixo) {
             close(fd);
             exit(-1);
         }
-        close(fd);
+        close(fd);*/
 
         return 0;
     } else if (strcmp(comando, "exit") == 0) {
@@ -118,44 +118,44 @@ void desenhaMapa(WINDOW *janela, int tipo) {
     wrefresh(janela);
 }
 
-void trataTeclado(WINDOW *janelaTopo, WINDOW *janelaBaixo) {
-    keypad(janelaTopo, TRUE);
-    wmove(janelaTopo, 1, 1);
-    int tecla = wgetch(janelaTopo);
+void trataTeclado(ThreadDataFrontend *tData) {
+    keypad(tData->janelaMapa, TRUE);
+    wmove(tData->janelaMapa, 1, 1);
+    int tecla = wgetch(tData->janelaMapa);
     char comando[100];
 
     while (tecla != 113) // trata as tecla até introduzirem a letra q. O código asci de q é 113
     {
         if (tecla == KEY_UP) {
-            desenhaMapa(janelaTopo, 2);
-            mvwprintw(janelaTopo, 1, 1, "Estou a carregar na tecla UP na posição 1,1 ");
-            wrefresh(janelaTopo);
+            desenhaMapa(tData->janelaMapa, 2);
+            mvwprintw(tData->janelaMapa, 1, 1, "Estou a carregar na tecla UP na posição 1,1 ");
+            wrefresh(tData->janelaMapa);
         } else if (tecla == KEY_RIGHT) {
-            desenhaMapa(janelaTopo, 2);
-            mvwprintw(janelaTopo, 1, 1, "Estou a carregar na tecla RIGHT na posição 1,1");
-            wrefresh(janelaTopo);
+            desenhaMapa(tData->janelaMapa, 2);
+            mvwprintw(tData->janelaMapa, 1, 1, "Estou a carregar na tecla RIGHT na posição 1,1");
+            wrefresh(tData->janelaMapa);
         } else if (tecla == KEY_LEFT) {
-            desenhaMapa(janelaTopo, 2);
-            mvwprintw(janelaTopo, 1, 1, "Estou a carregar na tecla LEFT na posição 1,1");
-            wrefresh(janelaTopo);
+            desenhaMapa(tData->janelaMapa, 2);
+            mvwprintw(tData->janelaMapa, 1, 1, "Estou a carregar na tecla LEFT na posição 1,1");
+            wrefresh(tData->janelaMapa);
         } else if (tecla == KEY_DOWN) {
-            desenhaMapa(janelaTopo, 2);
-            mvwprintw(janelaTopo, 1, 1, "Estou a carregar na tecla DOWN na posição 1,1");
-            wrefresh(janelaTopo);
+            desenhaMapa(tData->janelaMapa, 2);
+            mvwprintw(tData->janelaMapa, 1, 1, "Estou a carregar na tecla DOWN na posição 1,1");
+            wrefresh(tData->janelaMapa);
         } else if (tecla == ' ') {
-            wclear(janelaBaixo);
+            wclear(tData->janelaComandos);
             echo();
-            wprintw(janelaBaixo, "\nDigite um comando: ");
-            wgetstr(janelaBaixo, comando);
+            wprintw(tData->janelaComandos, "\nComando: ");
+            wgetstr(tData->janelaComandos, comando);
             noecho();
-            wrefresh(janelaBaixo);
-            if (verificaComandoUI(comando, janelaBaixo) == 1) return;
+            wrefresh(tData->janelaComandos);
+            if (verificaComandoUI(comando, tData->janelaComandos) == 1) return;
             noecho();
-            wrefresh(janelaBaixo);
+            wrefresh(tData->janelaComandos);
         }
-        wmove(janelaTopo, 1, 1);
-        wrefresh(janelaTopo);
-        tecla = wgetch(janelaTopo);
+        wmove(tData->janelaMapa, 1, 1);
+        wrefresh(tData->janelaMapa);
+        tecla = wgetch(tData->janelaMapa);
     }
 }
 

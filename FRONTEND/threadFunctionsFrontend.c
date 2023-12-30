@@ -5,13 +5,6 @@
 void *threadGerirBackend(void *arg) {
     ThreadDataFrontend *tData = (ThreadDataFrontend *) arg;
 
-    char pipeName[TAMANHO_NAMES];
-    sprintf(pipeName, "cli%d", getpid());
-    if (mkfifo(pipeName, 0640) == -1) {
-        perror("[ERRO] Erro a abrir o pipe do jogador");
-        exit(-1);
-    }
-
     // dizer ao servidor que o cliente quer inscrever-se
     int serverPipe = open(SRV_FIFO, O_WRONLY);// pipe do servidor
     if (serverPipe == -1) {
@@ -32,7 +25,7 @@ void *threadGerirBackend(void *arg) {
     close(serverPipe);
 
     // abrir para leitura
-    int pipeJogador = open(pipeName, O_RDONLY);
+    int pipeJogador = open(tData->ptrGameInfo->ptrThisUser->username, O_RDONLY);
     if (pipeJogador == -1) {
         perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
         exit(-1);

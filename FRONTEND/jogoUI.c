@@ -15,6 +15,12 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
 
+    if (mkfifo(argv[1], 0640) == -1) {
+        perror("[ERRO] Erro a abrir o pipe do jogador");
+        exit(-1);
+    }
+
+
     GameInfoFrontend gameInfoFrontend;
     pUser thisUser = malloc(sizeof(User));
     if (thisUser == NULL) {
@@ -31,32 +37,17 @@ int main(int argc, char *argv[]) {
             .janelaMapa = NULL,
             .janelaChat = NULL,
             .janelaLogs = NULL,
+            .janelaComandos = NULL,
             .ptrGameInfo = &gameInfoFrontend,
             .trinco = PTHREAD_MUTEX_INITIALIZER
     };
 
-    // thread para lidar com a comunicacao com o backend
-    pthread_t threadGerirBackendId;
-    if (pthread_create(&threadGerirBackendId, NULL, threadGerirBackend, (void *) &tData) != 0) {
-        perror("[ERRO] Erro ao criar a thread da comunicação do backend.\n");
-        fecharCliente(&gameInfoFrontend);
-        exit(-1);
-    }
-
     initscr();
-    //start_color();
     raw();
     noecho();
     keypad(stdscr, TRUE);
     attrset(A_DIM);
-    //cbreak();
-    //init_pair(1, COLOR_RED, COLOR_BLACK);
-    //init_pair(2, COLOR_GREEN, COLOR_BLACK);
-    //init_pair(3, COLOR_BLUE, COLOR_BLACK);
-    //init_pair(4, COLOR_YELLOW, COLOR_BLUE);
-    //attron(COLOR_PAIR(3));   // associa uma cor ao ecrã para desenhar uma moldura
-    //desenhaMoldura(10,20,6,15);
-    //wbkgd(janelaMapa, COLOR_PAIR(4));     // define backgound dos espaço vazio
+    cbreak();
 
     mvprintw(1, 10, "[ Tempo de jogo: %d   |   Nível: %d ]", tData.ptrGameInfo->tempoJogo, tData.ptrGameInfo->nivel);
     mvprintw(2, 10, "[ space - muda para o foco da janela de baixo ]");
@@ -69,18 +60,28 @@ int main(int argc, char *argv[]) {
     tData.janelaMapa = janelaMapa;
     tData.janelaChat = janelaChat;
     tData.janelaLogs = janelaLogs;
+    tData.janelaComandos = janelaComandos;
     pthread_mutex_unlock(&tData.trinco);
 
-    desenhaMapa(janelaMapa, 2);  // função exemplo que desenha o janela no ecrã
-    desenhaMapa(janelaComandos, 1);  // função exemplo que desenha o janela no ecrã
-    desenhaMapa(janelaChat, 3);  // função exemplo que desenha o janela no ecrã
-    desenhaMapa(janelaLogs, 4);  // função exemplo que desenha o janela no ecrã
-    trataTeclado(janelaMapa, janelaComandos); // função exemplo que trata o teclado
-    delwin(janelaMapa);  // apaga a janela.
-    delwin(janelaComandos);  // apaga a janela.
-    delwin(janelaLogs);  // apaga a janela.
-    delwin(janelaChat);  // apaga a janela.
-    endwin();  // encerra a utilização do ncurses. Muito importante senão o terminal fica inconsistente (idem se sair por outras vias)
+    desenhaMapa(janelaMapa, 2);
+    desenhaMapa(janelaComandos, 1);
+    desenhaMapa(janelaChat, 2);
+    desenhaMapa(janelaLogs, 2);
+
+    // thread para lidar com a comunicacao com o backend
+    pthread_t threadGerirBackendId;
+    if (pthread_create(&threadGerirBackendId, NULL, threadGerirBackend, (void *) &tData) != 0) {
+        perror("[ERRO] Erro ao criar a thread da comunicação do backend.\n");
+        fecharCliente(&gameInfoFrontend);
+        exit(-1);
+    }
+
+    trataTeclado(&tData);
+    delwin(janelaMapa);
+    delwin(janelaComandos);
+    delwin(janelaLogs);
+    delwin(janelaChat);
+    endwin();
 
     pthread_mutex_lock(&tData.trinco);
     tData.continua = true;

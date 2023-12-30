@@ -36,10 +36,7 @@ void *threadGerirFrontend(void *arg) {
         switch (msgFrontEnd.tipoMensagem) {
             case tipo_inscricao: // os jogadores inscrevem-se no jogo
                 if (tData->ptrGameSetup->usersAtivos < MAX_USERS) { // ainda há espaço para inscrições
-                    char pipeName[TAMANHO_NAMES];
-                    sprintf(pipeName, "cli%d", msgFrontEnd.informacao.inscricao.pid);
-                    //sleep(1);
-                    int pipeJogador = open(pipeName, O_WRONLY);
+                    int pipeJogador = open(msgFrontEnd.informacao.inscricao.username, O_WRONLY);
                     if (pipeJogador == -1) {
                         perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
                         continue;
@@ -93,9 +90,7 @@ void *threadGerirFrontend(void *arg) {
                     close(pipeJogador);
                 } else { // não há espaço para inscrições, verifica lista de espera
                     if (tData->ptrGameSetup->usersEspera < MAX_USERS) {
-                        char pipeName[TAMANHO_NAMES];
-                        sprintf(pipeName, "cli%d", msgFrontEnd.informacao.inscricao.pid);
-                        int pipeJogador = open(pipeName, O_WRONLY);
+                        int pipeJogador = open(msgFrontEnd.informacao.inscricao.username, O_WRONLY);
                         if (pipeJogador == -1) {
                             perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
                             continue;
@@ -147,9 +142,7 @@ void *threadGerirFrontend(void *arg) {
                         }
                         close(pipeJogador);
                     } else { // não há espaço em nenhuma lista
-                        char pipeName[TAMANHO_NAMES];
-                        sprintf(pipeName, "cli%d", msgFrontEnd.informacao.inscricao.pid);
-                        int pipeJogador = open(pipeName, O_WRONLY);
+                        int pipeJogador = open(msgFrontEnd.informacao.inscricao.username, O_WRONLY);
                         if (pipeJogador == -1) {
                             perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
                             continue;
@@ -172,11 +165,9 @@ void *threadGerirFrontend(void *arg) {
                 break;
             case tipo_informacao:
                 // le pedido do cliente e processa-o
-                if (msgFrontEnd.informacao.informacao.pid >= 0) {
+                if (true) {
 
-                    char pipeName[TAMANHO_NAMES];
-                    sprintf(pipeName, "cli%d", msgFrontEnd.informacao.informacao.pid);
-                    int pipeJogador = open(pipeName, O_WRONLY);
+                    int pipeJogador = open(msgFrontEnd.informacao.informacao.username, O_WRONLY);
                     if (pipeJogador == -1) {
                         perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
                         continue;
