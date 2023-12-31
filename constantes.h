@@ -15,10 +15,6 @@
 #define MAPA_COLUNAS 40
 #define MAPA_LINHAS 16
 
-#define CHAR_ROCK 'R'
-#define CHAR_BLOCK 'B'
-#define CHAR_WALL 'X'
-
 #define SRV_FIFO "canal"
 
 #include <pthread.h>

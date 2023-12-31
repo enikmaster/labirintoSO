@@ -73,9 +73,10 @@ int comandoBmov(GameSetup *gameSetup) {
         free(newBlock);
         return 6;
     }
+    ptrPosition->next = NULL;
     newBlock->position = ptrPosition;
     setRandomPosition(gameSetup->ptrMapa, newBlock->position);
-    newBlock->identificador = CHAR_BLOCK;
+    newBlock->identificador = 'B';
     newBlock->next = NULL;
     if (ptrBlocks == NULL) {
         pthread_mutex_lock(&gameSetup->mutexBots);
@@ -95,24 +96,27 @@ int comandoBmov(GameSetup *gameSetup) {
     msgBlock.informacao.block.y = newBlock->position->y;
 
     pUser users = gameSetup->ptrUsersAtivosHeader;
-    while (users != NULL && users->next != NULL) {
+    while (users != NULL) {
         int msgTodos = open(users->username, O_WRONLY);
         if (msgTodos == -1) {
-            perror("[ERRO] Erro ao abrir o pipe do servidor.\n");
+            perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
             close(msgTodos);
             free(newBlock);
             free(ptrPosition);
             return 6;
         }
         if (write(msgTodos, &msgBlock, sizeof(msgBlock)) == -1) {
-            perror("[ERRO] Erro ao escrever no pipe do servidor.\n");
+            perror("[ERRO] Erro ao escrever no pipe do jogador.\n");
             close(msgTodos);
             free(newBlock);
             free(ptrPosition);
             return 6;
         }
         close(msgTodos);
+        users = users->next;
     }
+    printf("[INFO] Block adicionado na posição (x: %d, y: %d)\n", newBlock->position->x, newBlock->position->y);
+    fflush(stdout);
     return 0;
 }
 
