@@ -60,8 +60,16 @@ int comandoBmov(GameSetup *gameSetup) {
     pBlock ptrBlocks;
     // adicionar um Block ao mapa
     ptrBlocks = gameSetup->ptrMapa->ptrBlocksHeader;
-    while (ptrBlocks != NULL && ptrBlocks->next != NULL)
+    int nBlocks = 1;
+    while (ptrBlocks != NULL && ptrBlocks->next != NULL) {
         ptrBlocks = ptrBlocks->next;
+        nBlocks++;
+    }
+    if (nBlocks >= MAX_BLOCKS) {
+        printf("[INFO] Não é possível adicionar mais Blocks.\n");
+        fflush(stdout);
+        return 0;
+    }
     pBlock newBlock = malloc(sizeof(Block));
     if (newBlock == NULL) {
         perror("[ERRO] Erro ao alocar memória para o Block.\n");
