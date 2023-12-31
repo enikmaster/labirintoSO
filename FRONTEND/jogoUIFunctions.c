@@ -142,7 +142,8 @@ void trataTeclado(ThreadDataFrontend *tData) {
         }
         wmove(tData->janelaMapa, 1, 1);
         wrefresh(tData->janelaMapa);
-        tecla = wgetch(tData->janelaMapa);
+        if (tecla != 113)
+            tecla = wgetch(tData->janelaMapa);
     }
 }
 

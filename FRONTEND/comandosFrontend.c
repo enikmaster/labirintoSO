@@ -1,5 +1,5 @@
-#include "jogoUI.h"
 #include "../constantes.h"
+#include "jogoUI.h"
 
 
 int comandoPlayers(ThreadDataFrontend *tData) {
@@ -33,8 +33,8 @@ int comandoPlayers(ThreadDataFrontend *tData) {
 int comandoExit(ThreadDataFrontend *tData) {
 
     MsgFrontEnd msgFrontEnd;
-    msgFrontEnd.tipoMensagem = tipo_terminar;
-    strcpy(msgFrontEnd.informacao.terminar.username, tData->ptrGameInfo->ptrThisUser->username);
+    msgFrontEnd.tipoMensagem = tipo_terminar_programa;
+    strcpy(msgFrontEnd.informacao.terminarPrograma.username, tData->ptrGameInfo->ptrThisUser->username);
 
     int fd = open(SRV_FIFO, O_WRONLY); // pipe do servidor
     if (fd == -1) {

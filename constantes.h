@@ -35,7 +35,7 @@ typedef enum {
     tipo_movimento,
     tipo_informacao,
     tipo_mensagem,
-    tipo_terminar,
+    //tipo_terminar,
     tipo_terminar_programa
 } TipoFrontEnd;
 
@@ -71,8 +71,7 @@ struct TipoTerminar {
 
 typedef struct TipoTerminarPrograma TipoTerminarPrograma;
 struct TipoTerminarPrograma {
-    char origem[TAMANHO_NAMES]; // nome da origem (neste caso servidor)
-    char mensagem[TAMANHO_CONTEUDO]; // mensagem do jogador
+    char username[TAMANHO_NAMES]; // nome da origem (neste caso servidor)
 };
 
 typedef struct MsgFrontEnd MsgFrontEnd;
@@ -83,7 +82,7 @@ struct MsgFrontEnd {
         TipoMovimento movimento;
         TipoInformacao informacao;
         TipoMensagem mensagem;
-        TipoTerminar terminar;
+        //TipoTerminar terminar;
         TipoTerminarPrograma terminarPrograma;
     } informacao;
 };
@@ -92,6 +91,7 @@ typedef enum {
     tipo_retorno_inscricao,
     tipo_retorno_players,
     tipo_retorno_chat,
+    tipo_retorno_logout,
     tipo_block,
     tipo_atualizar
 } TipoBackEnd;
@@ -118,6 +118,12 @@ struct TipoRetornoChat {
     char mensagem[TAMANHO_CONTEUDO]; // mensagem do jogador
 };
 
+typedef struct TipoRetornoLogout TipoRetornoLogout;
+struct TipoRetornoLogout {
+    char username[TAMANHO_NAMES];
+};
+
+
 typedef struct TipoBlock TipoBlock;
 struct TipoBlock {
     char origem[TAMANHO_NAMES]; // nome da origem (neste caso servidor)
@@ -139,6 +145,7 @@ struct MsgBackEnd {
         TipoRetornoInscricao retornoInscricao;
         TipoRetornoPlayers retornoPlayers;
         TipoRetornoChat retornoChat;
+        TipoRetornoLogout retornoLogout;
         TipoBlock block;
         TipoTerminarPrograma terminarPrograma;
     } informacao;

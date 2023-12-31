@@ -36,14 +36,58 @@ void desenhaBlock(ThreadDataFrontend *tData, int x, int y) {
     mvwaddch(tData->janelaMapa, y, x, tData->ptrGameInfo->ptrBlocksHeader->identificador);
 }
 
+void apagaUserDoMapa(ThreadDataFrontend *tData, char *username) {
+    pUserInfo users = tData->ptrGameInfo->ptrOtherUsersHeader;
+    while (users != NULL) {
+        if (users->identificador == toupper(username[0])) break;
+        users = users->next;
+    }
+    if (users == NULL) return;
+    mvwaddch(tData->janelaMapa, users->position->y, users->position->x, ' ');
+    wrefresh(tData->janelaMapa);
+}
+
+void removeUser(ThreadDataFrontend *tData, char *username) {
+    pUserInfo users = tData->ptrGameInfo->ptrOtherUsersHeader;
+    pUserInfo prev = NULL;
+    while (users != NULL) {
+        if (users->identificador == toupper(username[0])) break;
+        prev = users;
+        users = users->next;
+    }
+    if (users == NULL) return;
+    if (prev == NULL) {
+        pthread_mutex_lock(&tData->trinco);
+        tData->ptrGameInfo->ptrOtherUsersHeader = users->next;
+        pthread_mutex_unlock(&tData->trinco);
+    } else {
+        pthread_mutex_lock(&tData->trinco);
+        prev->next = users->next;
+        pthread_mutex_unlock(&tData->trinco);
+    }
+    free(users->position);
+    free(users);
+}
+
 void informaUser(ThreadDataFrontend *tData, MsgBackEnd msgBackEnd) {
     switch (msgBackEnd.tipoMensagem) {
         case tipo_block:
             mvwaddstr(tData->janelaLogs, 1, 1, "Adicionado um bloco.");
             break;
         case tipo_retorno_chat:
+            mvwprintw(tData->janelaChat, 1, 1, "%s: %s", msgBackEnd.informacao.retornoChat.origem,
+                      msgBackEnd.informacao.retornoChat.mensagem);
+            break;
+        case tipo_retorno_logout:
+            mvwprintw(tData->janelaLogs, 1, 1, "O utilizador %s saiu do jogo.",
+                      msgBackEnd.informacao.retornoLogout.username);
             break;
         case tipo_retorno_players:
+            for (int i = 0; i < 5; i++) {
+                if (strlen(msgBackEnd.informacao.retornoPlayers.listaJogadores[i]) > 0)
+                    mvwprintw(tData->janelaLogs, 1 + i, 1, "%s",
+                              msgBackEnd.informacao.retornoPlayers.listaJogadores[i]);
+            }
             break;
         case tipo_retorno_inscricao:
             mvwaddstr(tData->janelaLogs, 1, 1, msgBackEnd.informacao.retornoInscricao.mensagem);
@@ -98,16 +142,18 @@ void *threadGerirBackend(void *arg) {
                 wrefresh(tData->janelaLogs);
                 break;
             case tipo_retorno_players:
-                for (int i = 0; i < 5; i++) {
-                    if (strlen(msgBackEnd.informacao.retornoPlayers.listaJogadores[i]) > 0)
-                        mvwprintw(tData->janelaLogs, 5 + i, 5 + i, "%s",
-                                  msgBackEnd.informacao.retornoPlayers.listaJogadores[i]);
-                }
+                informaUser(tData, msgBackEnd);
                 wrefresh(tData->janelaLogs);
                 break;
             case tipo_retorno_chat:
-                mvwprintw(tData->janelaLogs, 3, 3, "%s: %s", msgBackEnd.informacao.retornoChat.origem,
-                          msgBackEnd.informacao.retornoChat.mensagem);
+                informaUser(tData, msgBackEnd);
+                wrefresh(tData->janelaChat);
+                break;
+            case tipo_retorno_logout:
+                informaUser(tData, msgBackEnd);
+                apagaUserDoMapa(tData, msgBackEnd.informacao.retornoLogout.username);
+                removeUser(tData, msgBackEnd.informacao.retornoLogout.username);
+                wrefresh(tData->janelaLogs);
                 break;
             case tipo_block:
                 adicionaBlock(tData, msgBackEnd.informacao.block.x, msgBackEnd.informacao.block.y);
@@ -117,9 +163,7 @@ void *threadGerirBackend(void *arg) {
                 break;
             case tipo_atualizar:
                 break;
-            case tipo_terminar_programa:
-                mvwprintw(tData->janelaLogs, 4, 4, "%s", msgBackEnd.informacao.terminarPrograma.mensagem);
-                break;
+
         }
         close(pipeJogador);
     } while (tData->continua == false);
