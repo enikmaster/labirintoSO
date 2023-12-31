@@ -6,7 +6,7 @@ motor: BACKEND/motor.c BACKEND/motorFunctions.c bot.c
 	gcc -o bot bot.c -lpthread -pthread
 
 jogoUI: FRONTEND/jogoUI.c FRONTEND/jogoUIFunctions.c
-	gcc -o jogoUI FRONTEND/jogoUI.c FRONTEND/jogoUIFunctions.c FRONTEND/threadFunctionsFrontend.c -lpthread -pthread -lncurses
+	gcc -o jogoUI FRONTEND/jogoUI.c FRONTEND/jogoUIFunctions.c FRONTEND/threadFunctionsFrontend.c FRONTEND/comandosFrontend.c -lpthread -pthread -lncurses
 
 clean:
 	rm -f motor jogoUI bot canal

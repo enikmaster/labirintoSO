@@ -109,8 +109,7 @@ int main(int argc, char *argv[]) {
     MsgFrontEnd terminarPrograma = {
             .tipoMensagem = tipo_terminar_programa
     };
-    strcpy(terminarPrograma.informacao.terminarPrograma.origem, "motor");
-    strcpy(terminarPrograma.informacao.terminarPrograma.mensagem, "terminar");
+    strcpy(terminarPrograma.informacao.terminarPrograma.username, "motor");
     if (write(forceExit, &terminarPrograma, sizeof(terminarPrograma)) == -1) {
         perror("[ERRO] Erro ao escrever no pipe do servidor.\n");
         close(forceExit);

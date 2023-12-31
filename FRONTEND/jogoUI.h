@@ -27,4 +27,10 @@ void *threadGerirBackend(void *);
 
 void fecharCliente(GameInfoFrontend *);
 
+int comandoPlayers(ThreadDataFrontend *);
+
+int comandoExit(ThreadDataFrontend *);
+
+int comandoMensagem(ThreadDataFrontend *, char *);
+
 #endif
