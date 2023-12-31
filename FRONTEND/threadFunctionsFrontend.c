@@ -1,7 +1,58 @@
 #include "../constantes.h"
 #include "jogoUI.h"
 
-// função para gerir a comunicaçõa com o backend
+void adicionaBlock(ThreadDataFrontend *tData, int x, int y) {
+    pBlock blocks = tData->ptrGameInfo->ptrBlocksHeader;
+    while (blocks != NULL && blocks->next != NULL) {
+        blocks = blocks->next;
+    }
+    pBlock ptrBlock = malloc(sizeof(Block));
+    if (ptrBlock == NULL) {
+        perror("[ERRO] Erro ao alocar memória para o Block.\n");
+        exit(-1);
+    }
+    ptrBlock->position = malloc(sizeof(Position));
+    if (ptrBlock->position == NULL) {
+        perror("[ERRO] Erro ao alocar memória para o Position.\n");
+        free(ptrBlock);
+        exit(-1);
+    }
+    ptrBlock->identificador = 'B';
+    ptrBlock->position->x = x;
+    ptrBlock->position->y = y;
+    ptrBlock->next = NULL;
+    if (blocks == NULL) {
+        pthread_mutex_lock(&tData->trinco);
+        tData->ptrGameInfo->ptrBlocksHeader = ptrBlock;
+        pthread_mutex_unlock(&tData->trinco);
+    } else {
+        pthread_mutex_lock(&tData->trinco);
+        blocks->next = ptrBlock;
+        pthread_mutex_unlock(&tData->trinco);
+    }
+}
+
+void desenhaBlock(ThreadDataFrontend *tData, int x, int y) {
+    mvwaddch(tData->janelaMapa, y, x, tData->ptrGameInfo->ptrBlocksHeader->identificador);
+}
+
+void informaUser(ThreadDataFrontend *tData, MsgBackEnd msgBackEnd) {
+    switch (msgBackEnd.tipoMensagem) {
+        case tipo_block:
+            mvwaddstr(tData->janelaLogs, 1, 1, "Adicionado um bloco.");
+            break;
+        case tipo_retorno_chat:
+            break;
+        case tipo_retorno_players:
+            break;
+        case tipo_retorno_inscricao:
+            mvwaddstr(tData->janelaLogs, 1, 1, msgBackEnd.informacao.retornoInscricao.mensagem);
+            break;
+    }
+    wrefresh(tData->janelaLogs);
+}
+
+// função para gerir a comunicação com o backend
 void *threadGerirBackend(void *arg) {
     ThreadDataFrontend *tData = (ThreadDataFrontend *) arg;
 
@@ -24,17 +75,18 @@ void *threadGerirBackend(void *arg) {
     }
     close(serverPipe);
 
-    // abrir para leitura
-    int pipeJogador = open(tData->ptrGameInfo->ptrThisUser->username, O_RDONLY);
-    if (pipeJogador == -1) {
-        perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
-        exit(-1);
-    }
-
     MsgBackEnd msgBackEnd;
     do {
+        // abrir para leitura
+        int pipeJogador = open(tData->ptrGameInfo->ptrThisUser->username, O_RDONLY);
+        if (pipeJogador == -1) {
+            perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
+            exit(-1);
+        }
         memset(&msgBackEnd, 0, sizeof(msgBackEnd));
+
         ssize_t bytesRead = read(pipeJogador, &msgBackEnd, sizeof(msgBackEnd));
+        wrefresh(tData->janelaLogs);
         if (bytesRead == 0) continue;
         if (bytesRead == -1) {
             perror("[ERRO] Erro ao ler do pipe do servidor.\n");
@@ -42,16 +94,22 @@ void *threadGerirBackend(void *arg) {
         }
         switch (msgBackEnd.tipoMensagem) {
             case tipo_retorno_inscricao:
-                mvwprintw(tData->janelaLogs, 1, 1, "%s", msgBackEnd.informacao.retornoInscricao.mensagem);
+                informaUser(tData, msgBackEnd);
                 wrefresh(tData->janelaLogs);
                 break;
             case tipo_retorno_players:
                 break;
             case tipo_retorno_chat:
                 break;
-            case tipo_terminar_programa:
+            case tipo_block:
+                adicionaBlock(tData, msgBackEnd.informacao.block.x, msgBackEnd.informacao.block.y);
+                informaUser(tData, msgBackEnd);
+                desenhaBlock(tData, msgBackEnd.informacao.block.x, msgBackEnd.informacao.block.y);
+                wrefresh(tData->janelaMapa);
+                break;
+            case tipo_atualizar:
                 break;
         }
-
-    } while (tData->continua);
+        close(pipeJogador);
+    } while (tData->continua == false);
 }

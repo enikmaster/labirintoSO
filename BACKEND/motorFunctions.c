@@ -29,7 +29,6 @@ void setGameSetup(GameSetup *gameSetup) {
     gameSetup->usersEspera = 0;
     gameSetup->tempoJogo = 0;
     gameSetup->nivel = 1;
-    pthread_mutex_init(&gameSetup->mutexJogadores, NULL);
     char *endptr;
     gameSetup->ptrSetup = malloc(sizeof(Setup));
     if (gameSetup->ptrSetup == NULL) {
@@ -320,8 +319,11 @@ void fecharJogo(GameSetup *gameSetup) {
     if (gameSetup->ptrMapa != NULL) fecharMapas(gameSetup->ptrMapa);
     // libertar a memória dos bots
     if (gameSetup->ptrBotsHeader != NULL) fecharBots(gameSetup->ptrBotsHeader);
-    // destruir o mutex
+    // destruir os mutexes
     pthread_mutex_destroy(&gameSetup->mutexJogadores);
+    pthread_mutex_destroy(&gameSetup->mutexMapa);
+    pthread_mutex_destroy(&gameSetup->mutexBots);
+    pthread_mutex_destroy(&gameSetup->mutexGeral);
 }
 
 void sigHandler(int sig) {
