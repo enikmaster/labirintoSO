@@ -203,6 +203,8 @@ void *threadGerirFrontend(void *arg) {
                 break;
             case tipo_mensagem:
                 break;
+            case tipo_block:
+                break;
             case tipo_terminar:
                 break;
         }

@@ -11,6 +11,7 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <ncurses.h>
+#include <time.h>
 
 extern pid_t pidBot;
 
