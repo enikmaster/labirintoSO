@@ -107,5 +107,6 @@ int main(int argc, char *argv[]) {
     }
     pthread_mutex_destroy(&tData.trinco);
     fecharCliente(&gameInfoFrontend);
+    unlink(argv[1]);
     exit(0);
 }

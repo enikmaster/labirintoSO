@@ -16,9 +16,14 @@ int main(int argc, char *argv[]) {
         perror("[ERRO] Erro a abrir o pipe do jogador");
         exit(-1);
     }
-
+    srand((unsigned int) time(NULL));
     pathParaVariaveisAmbiente();
-    GameSetup gameSetup;
+    GameSetup gameSetup = {
+            .mutexJogadores = PTHREAD_MUTEX_INITIALIZER,
+            .mutexBots = PTHREAD_MUTEX_INITIALIZER,
+            .mutexMapa = PTHREAD_MUTEX_INITIALIZER,
+            .mutexGeral = PTHREAD_MUTEX_INITIALIZER,
+    };
     setGameSetup(&gameSetup);
     loadMapa(&gameSetup, gameSetup.nivel);
     if (gameSetup.ptrMapa == NULL) {
@@ -57,10 +62,10 @@ int main(int argc, char *argv[]) {
                 controlo = comandoUsers(&gameSetup);
                 break;
             case 2:
-                controlo = comandoBots();
+                controlo = comandoBots(&gameSetup);
                 break;
             case 3:
-                controlo = comandoBmov();
+                controlo = comandoBmov(&gameSetup);
                 break;
             case 4:
                 controlo = comandoRbm();
@@ -101,7 +106,7 @@ int main(int argc, char *argv[]) {
         fecharJogo(&gameSetup);
         exit(-1);
     }
-    MsgBackEnd terminarPrograma = {
+    MsgFrontEnd terminarPrograma = {
             .tipoMensagem = tipo_terminar_programa
     };
     strcpy(terminarPrograma.informacao.terminarPrograma.origem, "motor");

@@ -11,6 +11,7 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <ncurses.h>
+#include <time.h>
 
 extern pid_t pidBot;
 
@@ -42,9 +43,9 @@ void *threadTimers(void *);
 // comandos do backend
 int comandoUsers(GameSetup *);
 
-int comandoBots();
+int comandoBots(GameSetup *);
 
-int comandoBmov();
+int comandoBmov(GameSetup *);
 
 int comandoRbm();
 

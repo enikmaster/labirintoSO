@@ -90,6 +90,8 @@ void *threadGerirFrontend(void *arg) {
                         continue;
                     }
                     close(pipeJogador);
+                    printf("\n[INFO] %s inscreveu-se no jogo.\n", msgFrontEnd.informacao.inscricao.username);
+                    fflush(stdout);
                 } else { // não há espaço para inscrições, verifica lista de espera
                     if (tData->ptrGameSetup->usersEspera < MAX_USERS) {
                         pUser thisUser = tData->ptrGameSetup->ptrUsersEsperaHeader;
@@ -144,6 +146,8 @@ void *threadGerirFrontend(void *arg) {
                             continue;
                         }
                         close(pipeJogador);
+                        printf("\n[INFO] %s em lista de espera.\n", msgFrontEnd.informacao.inscricao.username);
+                        fflush(stdout);
                     } else { // não há espaço em nenhuma lista
                         int pipeJogador = open(msgFrontEnd.informacao.inscricao.username, O_WRONLY);
                         if (pipeJogador == -1) {
@@ -161,8 +165,12 @@ void *threadGerirFrontend(void *arg) {
                             continue;
                         }
                         close(pipeJogador);
+                        printf("\n[INFO] %s tentou inscrever-se mas as listas estão cheias.\n",
+                               msgFrontEnd.informacao.inscricao.username);
+                        fflush(stdout);
                     }
                 }
+
                 break;
             case tipo_movimento:
                 break;
