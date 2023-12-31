@@ -42,14 +42,23 @@ void *threadGerirBackend(void *arg) {
         }
         switch (msgBackEnd.tipoMensagem) {
             case tipo_retorno_inscricao:
-                mvwprintw(tData->janelaLogs, 1, 1, "%s", msgBackEnd.informacao.retornoInscricao.mensagem);
+                mvwprintw(tData->janelaLogs, 2, 2, "%s", msgBackEnd.informacao.retornoInscricao.mensagem);
                 wrefresh(tData->janelaLogs);
                 break;
             case tipo_retorno_players:
+                for (int i = 0; i < 5; i++) {
+                    if (strlen(msgBackEnd.informacao.retornoPlayers.listaJogadores[i]) > 0)
+                        mvwprintw(tData->janelaLogs, 5 + i, 5 + i, "%s",
+                                  msgBackEnd.informacao.retornoPlayers.listaJogadores[i]);
+                }
+                wrefresh(tData->janelaLogs);
                 break;
             case tipo_retorno_chat:
+                mvwprintw(tData->janelaLogs, 3, 3, "%s: %s", msgBackEnd.informacao.retornoChat.origem,
+                          msgBackEnd.informacao.retornoChat.mensagem);
                 break;
             case tipo_terminar_programa:
+                mvwprintw(tData->janelaLogs, 4, 4, "%s", msgBackEnd.informacao.terminarPrograma.mensagem);
                 break;
         }
 

@@ -16,6 +16,7 @@ void *threadCountdownToStart(void *arg) {
 
 void *threadGerirFrontend(void *arg) {
     ThreadData *tData = (ThreadData *) arg;
+    bool checkMsg1 = false, checkMsg2 = false;
     bool startTimer = false;
     int serverPipe = open(SRV_FIFO, O_RDONLY);// pipe do servidor
     if (serverPipe == -1) {
@@ -175,7 +176,6 @@ void *threadGerirFrontend(void *arg) {
                         continue;
                     }
                     // get lista de users ativos
-                    // contactenar isso para um array
                     // meter isso no array no tipoMensagem
                     // enviar para o jogador
 
@@ -202,8 +202,105 @@ void *threadGerirFrontend(void *arg) {
 
                 break;
             case tipo_mensagem:
+                if (true) {
+                    while (tData->ptrGameSetup->ptrUsersAtivosHeader->next != NULL) {
+                        if (strcmp(tData->ptrGameSetup->ptrUsersAtivosHeader->username,
+                                   msgFrontEnd.informacao.mensagem.username) == 0) {
+                            checkMsg1 = true;
+                        }
+                        if (strcmp(tData->ptrGameSetup->ptrUsersAtivosHeader->username,
+                                   msgFrontEnd.informacao.mensagem.usernameDestino) == 0) {
+                            checkMsg2 = true;
+                        }
+                        tData->ptrGameSetup->ptrUsersAtivosHeader = tData->ptrGameSetup->ptrUsersAtivosHeader->next;
+                    }
+                    if (checkMsg1 && checkMsg2) {
+                        int pipeJogador = open(msgFrontEnd.informacao.mensagem.usernameDestino, O_WRONLY);
+                        if (pipeJogador == -1) {
+                            perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
+                            continue;
+                        }
+                        MsgBackEnd msgBackEnd;
+                        msgBackEnd.tipoMensagem = tipo_retorno_chat;
+                        strcpy(msgBackEnd.informacao.retornoChat.origem, msgFrontEnd.informacao.mensagem.username);
+                        strcpy(msgBackEnd.informacao.retornoChat.mensagem, msgFrontEnd.informacao.mensagem.mensagem);
+                        if (write(pipeJogador, &msgBackEnd, sizeof(msgBackEnd)) == -1) {
+                            perror("[ERRO] Erro ao escrever no pipe do jogador.\n");
+                            close(pipeJogador);
+                            continue;
+                        }
+                        close(pipeJogador);
+                    } else {
+                        int pipeJogador = open(msgFrontEnd.informacao.mensagem.username, O_WRONLY);
+                        if (pipeJogador == -1) {
+                            perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
+                            continue;
+                        }
+                        MsgBackEnd msgBackEnd;
+                        msgBackEnd.tipoMensagem = tipo_retorno_chat;
+                        strcpy(msgBackEnd.informacao.retornoChat.origem, "Servidor");
+                        strcpy(msgBackEnd.informacao.retornoChat.mensagem,
+                               "O utilizador que tentou contactar nao existe.");
+                        if (write(pipeJogador, &msgBackEnd, sizeof(msgBackEnd)) == -1) {
+                            perror("[ERRO] Erro ao escrever no pipe do jogador.\n");
+                            close(pipeJogador);
+                            continue;
+                        }
+                        close(pipeJogador);
+                    }
+                    checkMsg1 = false;
+                    checkMsg2 = false;
+                }
                 break;
             case tipo_terminar:
+                if (true) {
+                    // codigo para o tirar da lista
+                    pUser ptrUser = tData->ptrGameSetup->ptrUsersAtivosHeader;
+                    pUser ptrUserAnterior = NULL;
+                    while (ptrUser != NULL) {
+                        if (strcmp(ptrUser->username, msgFrontEnd.informacao.terminar.username) == 0) {
+                            if (ptrUserAnterior == NULL) {
+                                tData->ptrGameSetup->ptrUsersAtivosHeader = ptrUser->next;
+                            } else {
+                                ptrUserAnterior->next = ptrUser->next;
+                            }
+                            free(ptrUser->ptrUserInfo->position);
+                            free(ptrUser->ptrUserInfo);
+                            free(ptrUser);
+                            tData->ptrGameSetup->usersAtivos--;
+                            break;
+                        }
+                        ptrUserAnterior = ptrUser;
+                        ptrUser = ptrUser->next;
+                    }
+
+                    // avisar todos os outros jogadores de que este jogador saiu
+                    ptrUser = tData->ptrGameSetup->ptrUsersAtivosHeader;
+                    while (ptrUser != NULL) {
+                        int pipeJogador = open(ptrUser->username, O_WRONLY);
+                        if (pipeJogador == -1) {
+                            perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
+                            continue;
+                        }
+                        MsgBackEnd msgBackEnd;
+                        msgBackEnd.tipoMensagem = tipo_terminar_programa;
+                        strcpy(msgBackEnd.informacao.terminarPrograma.origem, "Servidor");
+                        strcpy(msgBackEnd.informacao.terminarPrograma.mensagem, "O jogador ");
+                        strcat(msgBackEnd.informacao.terminarPrograma.mensagem,
+                               msgFrontEnd.informacao.terminar.username);
+                        strcat(msgBackEnd.informacao.terminarPrograma.mensagem, " saiu do jogo.");
+
+                        if (write(pipeJogador, &msgBackEnd, sizeof(msgBackEnd)) == -1) {
+                            perror("[ERRO] Erro ao escrever no pipe do jogador.\n");
+                            close(pipeJogador);
+                            continue;
+                        }
+                        close(pipeJogador);
+                        ptrUser = ptrUser->next;
+                    }
+                    free(ptrUser);
+                    //TODO este free nao faz sentido?
+                }
                 break;
         }
 
