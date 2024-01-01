@@ -20,7 +20,7 @@ void *threadGerirFrontend(void *arg) {
     bool startTimer = false;
     int serverPipe = 0;
     MsgFrontEnd msgFrontEnd;
-    while (tData->continua == false) {
+    do {
         serverPipe = open(SRV_FIFO, O_RDONLY);// pipe do servidor
         if (serverPipe == -1) {
             perror("[ERRO] Erro ao abrir o pipe do servidor.\n");
@@ -315,22 +315,71 @@ void *threadGerirFrontend(void *arg) {
                     }
                 }
                 break;
+            case tipo_terminar:
+                break;
         }
 
-    }
+    } while (tData->continua == false);
     close(serverPipe);
     pthread_exit(NULL);
 }
 
+// cenas do timer
+
+long int setTempoJogo(ThreadData *tData) {
+    long int tempoJogo;
+    if (tData->ptrGameSetup->nivel == 1) {
+        tempoJogo = tData->ptrGameSetup->tempoJogo;
+    } else {
+        //tempoJogo =
+    }
+    return tempoJogo;
+}
+
+void begin(ThreadData *tData, long int *tempoJogo) {
+    // verifica o nível do jogo
+    // verifica o tempo de jogo
+    // verifica o tempo de decremento
+    // envia o mapa para os clientes
+}
+
 void *threadTimers(void *arg) {
     ThreadData *tData = (ThreadData *) arg;
+    long int tempoInscricao = tData->ptrGameSetup->ptrSetup->inscricao;
+    long int tempoJogo;
+
     do {
         // verificar se o jogo está ativo
+        if (!tData->ptrGameSetup->jogoAtivo) {
+            pthread_mutex_lock(&tData->ptrGameSetup->mutexJogadores);
+            if (tData->ptrGameSetup->usersAtivos >= tData->ptrGameSetup->ptrSetup->minJogadores) {
+                // começa a contar o tempo para o jogo começar
+                if (--tempoInscricao <= 0) {
+                    tData->ptrGameSetup->jogoAtivo = true;
+                    // inicia o tempo de jogo;
+                    //tempoJogo = setTempoJogo(tData);
+                    // lança o jogo
+                    //begin(tData, &tempoJogo);
+                } else {
+                    if (tData->ptrGameSetup->usersAtivos >= MAX_USERS) {
+                        tData->ptrGameSetup->jogoAtivo = true;
+                        // lança o jogo
+                        //begin(tData, &tempoJogo);
+                    }
+                }
+            }
+            pthread_mutex_unlock(&tData->ptrGameSetup->mutexJogadores);
+
+        } else {
+
+        }
+
 
         // verificar se o tempo de jogo chegou ao fim
         // verificar se existe um vencedor
         // mexer um block
         //decrementaUmSegundo();
+
         sleep(1);
     } while (tData->continua == false);
     pthread_exit(NULL);

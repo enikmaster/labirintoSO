@@ -46,8 +46,7 @@ int verificaComandoUI(char *comando, WINDOW *janelaBaixo) {
     char userToMessage[TAMANHO_COMANDO] = {'\0'};
     char msgToSend[TAMANHO_COMANDO] = {'\0'};
     if (sscanf(comando, "%s %s", comandoTemp, userToMessage) == 2
-        && strcmp(comandoTemp, "msg") == 0
-        && checkIfUserAtivo(userToMessage)) {
+        && strcmp(comandoTemp, "msg") == 0) {
         char *mensagem_ptr = strchr(strchr(comando, ' ') + 1, ' ');
         if (mensagem_ptr != NULL) {
             mensagem_ptr++;
@@ -74,9 +73,6 @@ int verificaComandoUI(char *comando, WINDOW *janelaBaixo) {
     return -1;
 }
 
-
-bool checkIfUserAtivo(char *userToMessage) { return true; }
-
 void desenhaMapa(WINDOW *janela, int tipo) {
     if (tipo == 1) {
         scrollok(janela, TRUE);
@@ -92,25 +88,35 @@ void desenhaMapa(WINDOW *janela, int tipo) {
 
 void trataTeclado(ThreadDataFrontend *tData) {
     keypad(tData->janelaMapa, TRUE);
-    wmove(tData->janelaMapa, 1, 1);
+    //wmove(tData->janelaMapa, 1, 1);
     int tecla = wgetch(tData->janelaMapa);
     char comando[100];
-
-    while (tecla != 113) // trata as tecla até introduzirem a letra q. O código asci de q é 113
-    {
+    //nodelay(tData->janelaMapa, TRUE);
+    while (!tData->continua && tecla != 113) {
+        //if (tecla == ERR) {
+        //    continue;
+        //} else
         if (tecla == KEY_UP) {
+            // envia mensagem ao servidor
+            // comandoUp(KEY_UP);
             desenhaMapa(tData->janelaMapa, 2);
             mvwprintw(tData->janelaMapa, 1, 1, "Estou a carregar na tecla UP na posição 1,1 ");
             wrefresh(tData->janelaMapa);
         } else if (tecla == KEY_RIGHT) {
+            // envia mensagem ao servidor
+            // comandoRight(KEY_RIGHT);
             desenhaMapa(tData->janelaMapa, 2);
             mvwprintw(tData->janelaMapa, 1, 1, "Estou a carregar na tecla RIGHT na posição 1,1");
             wrefresh(tData->janelaMapa);
         } else if (tecla == KEY_LEFT) {
+            // envia mensagem ao servidor
+            // comandoLeft(KEY_LEFT);
             desenhaMapa(tData->janelaMapa, 2);
             mvwprintw(tData->janelaMapa, 1, 1, "Estou a carregar na tecla LEFT na posição 1,1");
             wrefresh(tData->janelaMapa);
         } else if (tecla == KEY_DOWN) {
+            // envia mensagem ao servidor
+            // comandoDown(KEY_DOWN);
             desenhaMapa(tData->janelaMapa, 2);
             mvwprintw(tData->janelaMapa, 1, 1, "Estou a carregar na tecla DOWN na posição 1,1");
             wrefresh(tData->janelaMapa);
@@ -120,9 +126,6 @@ void trataTeclado(ThreadDataFrontend *tData) {
             wprintw(tData->janelaComandos, "\nComando: ");
             wgetstr(tData->janelaComandos, comando);
             noecho();
-            wrefresh(tData->janelaComandos);
-
-
             switch (verificaComandoUI(comando, tData->janelaComandos)) {
                 case 1: // comando msg
                     comandoMensagem(tData, comando);
@@ -136,12 +139,10 @@ void trataTeclado(ThreadDataFrontend *tData) {
                 case -1:
                     break;
             }
-
-            noecho();
             wrefresh(tData->janelaComandos);
         }
-        wmove(tData->janelaMapa, 1, 1);
-        wrefresh(tData->janelaMapa);
+        //wmove(tData->janelaMapa, 1, 1);
+        //wrefresh(tData->janelaMapa);
         if (tecla != 113)
             tecla = wgetch(tData->janelaMapa);
     }

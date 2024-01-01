@@ -35,7 +35,7 @@ typedef enum {
     tipo_movimento,
     tipo_informacao,
     tipo_mensagem,
-    //tipo_terminar,
+    tipo_terminar,
     tipo_terminar_programa
 } TipoFrontEnd;
 
@@ -82,7 +82,7 @@ struct MsgFrontEnd {
         TipoMovimento movimento;
         TipoInformacao informacao;
         TipoMensagem mensagem;
-        //TipoTerminar terminar;
+        TipoTerminar terminar;
         TipoTerminarPrograma terminarPrograma;
     } informacao;
 };
@@ -223,8 +223,8 @@ struct Map {
 typedef struct Bot Bot, *pBot;
 struct Bot {
     pid_t pid;
-    pPosition ptrPosition;
     int duracao;
+    int intervalo;
     pBot next;
 };
 //  - Setup - dados sobre a configuração inicial do jogo

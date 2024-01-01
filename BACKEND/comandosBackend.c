@@ -183,15 +183,13 @@ int comandoRbm(GameSetup *gameSetup) {
     return 0;
 }
 
-int comandoBegin() {
+int comandoBegin(GameSetup *gameSetup) {
+    gameSetup->jogoAtivo = true;
+    // begin();
     return 0;
 }
 
 int comandoEnd(GameSetup *gameSetup) {
-    // kick em todos os users
-    // free de tudo
-    // return 6
-
     pUser ptrUser;
     ptrUser = gameSetup->ptrUsersAtivosHeader;
     MsgBackEnd msgBackEnd;

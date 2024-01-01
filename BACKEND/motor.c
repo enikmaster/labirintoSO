@@ -42,11 +42,11 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
     // thread para lidar com os timers do jogo, após os jogadores terem feito a inscrição
-    /*pthread_t threadTimersId;
+    pthread_t threadTimersId;
     if (pthread_create(&threadTimersId, NULL, threadTimers, (void *) &tData) != 0) {
         perror("[ERRO] Erro ao criar a thread dos timers.\n");
         exit(-1);
-    }*/
+    }
 
     int controlo = 0;
     char comando[TAMANHO_COMANDO];
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
                 controlo = comandoRbm(&gameSetup);
                 break;
             case 5:
-                controlo = comandoBegin();
+                controlo = comandoBegin(&gameSetup);
                 break;
             case 6:
                 controlo = comandoEnd(&gameSetup); // fecha a loja e manda todos para casa
@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
     MsgFrontEnd terminarPrograma = {
-            .tipoMensagem = tipo_terminar_programa
+            .tipoMensagem = tipo_terminar,
     };
     strcpy(terminarPrograma.informacao.terminarPrograma.username, "motor");
     if (write(forceExit, &terminarPrograma, sizeof(terminarPrograma)) == -1) {
@@ -122,19 +122,12 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
     close(forceExit);
-    /*tData.continua = true;
-    forceExit = open(SRV_FIFO, O_WRONLY);
-    if (forceExit == -1) {
-        perror("[ERRO] Erro ao abrir o pipe do servidor.\n");
-        fecharJogo(&gameSetup);
-        exit(-1);
-    }
+    tData.continua = true;
     if (pthread_join(threadTimersId, NULL) != 0) {
         perror("[ERRO] Erro ao fechar a thread dos timers.\n");
         fecharJogo(&gameSetup);
         exit(-1);
     }
-    close(forceExit);*/
     // fechar o pipe do servidor
     unlink(SRV_FIFO);
     fecharJogo(&gameSetup); // esta é a última coisa a fazer antes de sair

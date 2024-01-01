@@ -49,13 +49,10 @@ int comandoBmov(GameSetup *);
 
 int comandoRbm(GameSetup *);
 
-int comandoBegin();
+int comandoBegin(GameSetup *);
 
 int comandoEnd(GameSetup *);
 
 int comandoKick(GameSetup *, char *);
-
-// comandos do frontend
-
 
 #endif

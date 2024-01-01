@@ -175,11 +175,11 @@ void *threadGerirBackend(void *arg) {
                 delwin(tData->janelaLogs);
                 delwin(tData->janelaChat);
                 endwin();
-
                 pthread_mutex_destroy(&tData->trinco);
                 unlink(tData->ptrGameInfo->ptrThisUser->username);
                 fecharCliente(tData->ptrGameInfo);
-                exit(0);
+                exit(0); // não tivemos tempo para entender o ncurses
+                //break;
             case tipo_block:
                 adicionaBlock(tData, msgBackEnd.informacao.block.x, msgBackEnd.informacao.block.y);
                 informaUser(tData, msgBackEnd);
