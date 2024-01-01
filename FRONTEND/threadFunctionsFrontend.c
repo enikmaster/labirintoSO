@@ -32,6 +32,17 @@ void adicionaBlock(ThreadDataFrontend *tData, int x, int y) {
     }
 }
 
+void removeBlock(ThreadDataFrontend *tData) {
+    pBlock blocks = tData->ptrGameInfo->ptrBlocksHeader;
+    if (blocks == NULL) return;
+    mvwaddch(tData->janelaMapa, blocks->position->y, blocks->position->x, ' ');
+    pthread_mutex_lock(&tData->trinco);
+    tData->ptrGameInfo->ptrBlocksHeader = blocks->next;
+    pthread_mutex_unlock(&tData->trinco);
+    free(blocks->position);
+    free(blocks);
+}
+
 void desenhaBlock(ThreadDataFrontend *tData, int x, int y) {
     mvwaddch(tData->janelaMapa, y, x, tData->ptrGameInfo->ptrBlocksHeader->identificador);
 }
@@ -73,6 +84,9 @@ void informaUser(ThreadDataFrontend *tData, MsgBackEnd msgBackEnd) {
     switch (msgBackEnd.tipoMensagem) {
         case tipo_block:
             mvwaddstr(tData->janelaLogs, 1, 1, "Adicionado um bloco.");
+            break;
+        case tipo_remove_block:
+            mvwaddstr(tData->janelaLogs, 1, 1, "Removido um bloco.");
             break;
         case tipo_retorno_chat:
             mvwprintw(tData->janelaChat, 1, 1, "%s: %s", msgBackEnd.informacao.retornoChat.origem,
@@ -142,12 +156,8 @@ void *threadGerirBackend(void *arg) {
         }
         switch (msgBackEnd.tipoMensagem) {
             case tipo_retorno_inscricao:
-                informaUser(tData, msgBackEnd);
-                wrefresh(tData->janelaLogs);
-                break;
             case tipo_retorno_players:
                 informaUser(tData, msgBackEnd);
-                wrefresh(tData->janelaLogs);
                 break;
             case tipo_retorno_chat:
                 informaUser(tData, msgBackEnd);
@@ -157,7 +167,6 @@ void *threadGerirBackend(void *arg) {
                 informaUser(tData, msgBackEnd);
                 apagaUserDoMapa(tData, msgBackEnd.informacao.retornoLogout.username);
                 removeUser(tData, msgBackEnd.informacao.retornoLogout.username);
-                wrefresh(tData->janelaLogs);
                 break;
             case tipo_retorno_kick:
                 // forçar o comandos end do cliente
@@ -177,9 +186,13 @@ void *threadGerirBackend(void *arg) {
                 desenhaBlock(tData, msgBackEnd.informacao.block.x, msgBackEnd.informacao.block.y);
                 wrefresh(tData->janelaMapa);
                 break;
+            case tipo_remove_block:
+                removeBlock(tData);
+                informaUser(tData, msgBackEnd);
+                wrefresh(tData->janelaMapa);
+                break;
             case tipo_atualizar:
                 break;
-
         }
         close(pipeJogador);
     } while (tData->continua == false);

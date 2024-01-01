@@ -94,6 +94,7 @@ typedef enum {
     tipo_retorno_logout,
     tipo_retorno_kick,
     tipo_block,
+    tipo_remove_block,
     tipo_atualizar
 } TipoBackEnd;
 
@@ -137,6 +138,11 @@ struct TipoBlock {
     int y;
 };
 
+typedef struct TipoRemoveBlock TipoRemoveBlock;
+struct TipoRemoveBlock {
+    char origem[TAMANHO_NAMES]; // nome da origem (neste caso servidor)
+};
+
 typedef struct TipoAtualizar TipoAtualizar;
 struct TipoAtualizar {
     char origem[TAMANHO_NAMES]; // nome da origem (neste caso servidor)
@@ -154,6 +160,7 @@ struct MsgBackEnd {
         TipoRetornoLogout retornoLogout;
         TipoRetornoKick retornoKick;
         TipoBlock block;
+        TipoRemoveBlock removeBlock;
         TipoTerminarPrograma terminarPrograma;
     } informacao;
 };
