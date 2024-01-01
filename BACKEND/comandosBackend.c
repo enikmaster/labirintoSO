@@ -146,10 +146,11 @@ int comandoKick(GameSetup *gameSetup, char *username) {
     if (gameSetup->usersAtivos == 0) {
         printf("[INFO] Não existem jogadores ativos.\n");
         fflush(stdout);
+        return 0;
     } else {
         ptrUser = gameSetup->ptrUsersAtivosHeader;
         ptrUserAnterior = NULL;
-        username[strlen(username) - 1] = '\0';
+        username[strlen(username)] = '\0';
         for (int i = 0; i < strlen(username); ++i)
             username[i] = tolower(username[i]);
         char usernameNomalized[strlen(username)];
@@ -158,8 +159,27 @@ int comandoKick(GameSetup *gameSetup, char *username) {
             strcpy(usernameNomalized, gameSetup->ptrUsersAtivosHeader->username);
             for (int i = 0; i < strlen(usernameNomalized); ++i)
                 usernameNomalized[i] = tolower(usernameNomalized[i]);
+
+            // enviar mensagem ao cliente que foi kickado
+            MsgBackEnd msgBackEnd;
+            msgBackEnd.tipoMensagem = tipo_retorno_kick;
+            strcpy(msgBackEnd.informacao.retornoKick.username, username);
+
+            int pipeJogador = open(ptrUser->username, O_WRONLY);
+            if (pipeJogador == -1) {
+                perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
+                continue;
+            }
+            if (write(pipeJogador, &msgBackEnd, sizeof(msgBackEnd)) == -1) {
+                perror("[ERRO] Erro ao escrever no pipe do jogador.\n");
+                close(pipeJogador);
+                continue;
+            }
+            close(pipeJogador);
+
             if (strcmp(usernameNomalized, username) == 0) {
-                // TODO: avisar o jogador que vai ser desligado
+                // mutex lock
+
                 (ptrUserAnterior == NULL)
                 ? (gameSetup->ptrUsersAtivosHeader = ptrUser->next)
                 : (ptrUserAnterior->next = ptrUser->next);
@@ -168,14 +188,44 @@ int comandoKick(GameSetup *gameSetup, char *username) {
                        ptrUser->ptrUserInfo->identificador);
                 fflush(stdout);
                 free(ptrUser->ptrUserInfo->position);
+                free(ptrUser->ptrUserInfo);
                 free(ptrUser);
-                return 0;
+                // mutex unlock
+
+                break;
             }
             ptrUserAnterior = ptrUser;
             ptrUser = ptrUser->next;
         }
-        printf("[INFO] Não foi encontrado nenhum jogador com o username '%s\n", username);
-        fflush(stdout);
+
+        if (ptrUser == NULL) {
+            printf("[INFO] Não existe nenhum jogador com o username %s.\n", username);
+            fflush(stdout);
+            return 0;
+        }
+
+        MsgBackEnd msgBackEnd;
+        msgBackEnd.tipoMensagem = tipo_retorno_logout;
+        strcpy(msgBackEnd.informacao.retornoLogout.username, username);
+
+        // avisar todos os outros jogadores de que este jogador foi kickado
+        ptrUser = gameSetup->ptrUsersAtivosHeader;
+        while (ptrUser != NULL) {
+            int pipeJogador = open(ptrUser->username, O_WRONLY);
+            if (pipeJogador == -1) {
+                perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
+                continue;
+            }
+
+            if (write(pipeJogador, &msgBackEnd, sizeof(msgBackEnd)) == -1) {
+                perror("[ERRO] Erro ao escrever no pipe do jogador.\n");
+                close(pipeJogador);
+                continue;
+            }
+            close(pipeJogador);
+            ptrUser = ptrUser->next;
+        }
+
     }
     return 0;
 }

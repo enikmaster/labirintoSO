@@ -92,6 +92,7 @@ typedef enum {
     tipo_retorno_players,
     tipo_retorno_chat,
     tipo_retorno_logout,
+    tipo_retorno_kick,
     tipo_block,
     tipo_atualizar
 } TipoBackEnd;
@@ -123,6 +124,11 @@ struct TipoRetornoLogout {
     char username[TAMANHO_NAMES];
 };
 
+typedef struct TipoRetornoKick TipoRetornoKick;
+struct TipoRetornoKick {
+    char username[TAMANHO_NAMES];
+};
+
 
 typedef struct TipoBlock TipoBlock;
 struct TipoBlock {
@@ -146,6 +152,7 @@ struct MsgBackEnd {
         TipoRetornoPlayers retornoPlayers;
         TipoRetornoChat retornoChat;
         TipoRetornoLogout retornoLogout;
+        TipoRetornoKick retornoKick;
         TipoBlock block;
         TipoTerminarPrograma terminarPrograma;
     } informacao;
