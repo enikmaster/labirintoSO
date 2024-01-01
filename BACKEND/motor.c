@@ -74,8 +74,7 @@ int main(int argc, char *argv[]) {
                 controlo = comandoBegin();
                 break;
             case 6:
-                controlo = comandoEnd(); // fecha a loja e manda todos para casa
-                controlo = 6;
+                controlo = comandoEnd(&gameSetup); // fecha a loja e manda todos para casa
                 break;
             case 7:
                 memset(comandoTemp, 0, sizeof(comandoTemp));
