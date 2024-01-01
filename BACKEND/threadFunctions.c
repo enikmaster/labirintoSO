@@ -39,7 +39,41 @@ void begin(ThreadData *tData) {
         close(pipeJogador);
         ptrUser = ptrUser->next;
     }
+}
 
+void setPosicaoStart(ThreadData *tData) {
+    MsgBackEnd msgBackEnd;
+    int i = 0;
+    pUser ptrUser = tData->ptrGameSetup->ptrUsersAtivosHeader;
+    pPosition ptrPosition = tData->ptrGameSetup->ptrMapa->ptrInicioHeader;
+    while (ptrUser != NULL) {
+        // atribuir posições ao user
+        ptrUser->ptrUserInfo->position->x = ptrPosition->x;
+        ptrUser->ptrUserInfo->position->y = ptrPosition->y;
+        // preencher a mensagem
+        msgBackEnd.tipoMensagem = tipo_posicoes_iniciais;
+        strcpy(msgBackEnd.informacao.posicoesIniciais.username[i], ptrUser->username);
+        msgBackEnd.informacao.posicoesIniciais.x[i] = ptrPosition->x;
+        msgBackEnd.informacao.posicoesIniciais.y[i] = ptrPosition->y;
+        // passar ao próximo user
+        ptrUser = ptrUser->next;
+        ptrPosition = ptrPosition->next;
+        ++i;
+    }
+    ptrUser = tData->ptrGameSetup->ptrUsersAtivosHeader;
+    while (ptrUser != NULL) {
+        int pipeJogador = open(ptrUser->username, O_WRONLY);
+        if (pipeJogador == -1) {
+            perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
+            continue;
+        }
+        if (write(pipeJogador, &msgBackEnd, sizeof(msgBackEnd)) == -1) {
+            perror("[ERRO] Erro ao escrever no pipe do jogador.\n");
+            close(pipeJogador);
+            continue;
+        }
+        close(pipeJogador);
+    }
 }
 
 void *threadTimers(void *arg) {
@@ -49,30 +83,39 @@ void *threadTimers(void *arg) {
 
     do {
         // verificar se o jogo está ativo
-        if (!tData->ptrGameSetup->jogoAtivo) {
+        if (!tData->ptrGameSetup->jogoAtivo) { // jogo ainda não começou (inscrições)
             pthread_mutex_lock(&tData->ptrGameSetup->mutexJogadores);
             if (tData->ptrGameSetup->usersAtivos >= tData->ptrGameSetup->ptrSetup->minJogadores) {
-                // começa a contar o tempo para o jogo começar
-                printf("\n[INFO] O jogo vai começar em %ld segundos.\n", tempoInscricao);
+                printf("[INFO] O jogo vai começar em %ld segundos.\n", tempoInscricao);
                 fflush(stdout);
-                if (--tempoInscricao <= 0) {
+                if (--tempoInscricao <= 0 || tData->ptrGameSetup->usersAtivos >= MAX_USERS) {
                     tData->ptrGameSetup->jogoAtivo = true;
                     tempoJogo = setTempoJogo(tData);
-                    // lança o jogo
                     begin(tData);
-                } else {
-                    if (tData->ptrGameSetup->usersAtivos >= MAX_USERS) {
-                        tData->ptrGameSetup->jogoAtivo = true;
-                        tempoJogo = setTempoJogo(tData);
-                        // lança o jogo
-                        begin(tData);
+                    setPosicaoStart(tData);
+                    if (tData->ptrGameSetup->ptrMapa->ptrBlocksHeader != NULL) {
+                        // TODO: enviar mensagem com os blocks, para todos os users
+                    }
+                    if (tData->ptrGameSetup->ptrMapa->ptrRocksHeader != NULL) {
+                        // TODO: enviar mensagem com os rocks, para todos os users
                     }
                 }
             }
             pthread_mutex_unlock(&tData->ptrGameSetup->mutexJogadores);
-
-        } else {
+        } else { // jogo a decorrer
+            tempoJogo--;
             // verificar se o tempo de jogo chegou ao fim
+            if (tempoJogo <= 0) { // é para terminar / passar de nível
+
+                // verificar o nivel
+                tData->ptrGameSetup->jogoAtivo = false;
+                // enviar mensagem para os clientes
+                // enviar mensagem para o servidor
+                // enviar mensagem para o motor
+            } else { // é paar rodar um turno
+
+            }
+
             // verificar se existe um vencedor
             // mexer um block
             //decrementaUmSegundo();
@@ -137,6 +180,7 @@ void *threadGerirFrontend(void *arg) {
                     newUser->ptrUserInfo->position = newPosition;
                     pthread_mutex_lock(&tData->ptrGameSetup->mutexJogadores);
                     newUser->ptrUserInfo->identificador = toupper(newUser->username[0]);
+                    strcpy(newUser->ptrUserInfo->username, newUser->username);
                     newUser->ptrUserInfo->position->x = 0;
                     newUser->ptrUserInfo->position->y = 0;
                     newUser->ptrUserInfo->position->next = NULL;

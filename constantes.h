@@ -96,7 +96,8 @@ typedef enum {
     tipo_block,
     tipo_remove_block,
     tipo_atualizar,
-    tipo_start_game
+    tipo_start_game,
+    tipo_posicoes_iniciais
 } TipoBackEnd;
 
 // definir aqui os tipos de mensagem de retorno
@@ -159,6 +160,13 @@ struct TipoStartGame {
     int nivel;
 };
 
+typedef struct TipoPosicoesIniciais TipoPosicoesIniciais;
+struct TipoPosicoesIniciais {
+    char username[MAX_USERS][TAMANHO_NAMES];
+    int x[MAX_USERS];
+    int y[MAX_USERS];
+};
+
 typedef struct MsgBackEnd MsgBackEnd;
 struct MsgBackEnd {
     TipoBackEnd tipoMensagem;
@@ -172,6 +180,7 @@ struct MsgBackEnd {
         TipoRemoveBlock removeBlock;
         TipoTerminarPrograma terminarPrograma;
         TipoStartGame startGame;
+        TipoPosicoesIniciais posicoesIniciais;
     } informacao;
 };
 
@@ -192,6 +201,7 @@ struct Position {
 typedef struct UserInfo UserInfo, *pUserInfo;
 struct UserInfo {
     char identificador;
+    char username[TAMANHO_NAMES];
     pPosition position;
     pUserInfo next;
 };

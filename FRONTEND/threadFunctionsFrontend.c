@@ -120,6 +120,36 @@ void removeUser(ThreadDataFrontend *tData, char *username) {
     free(users);
 }
 
+void setPosicoesIniciais(ThreadDataFrontend *tData, MsgBackEnd msgBackEnd) {
+    pUser thisUser = tData->ptrGameInfo->ptrThisUser;
+    for (int i = 0; i < MAX_USERS; i++)
+        if (strcmp(msgBackEnd.informacao.posicoesIniciais.username[i], thisUser->username) == 0) {
+            thisUser->ptrUserInfo->position->x = msgBackEnd.informacao.posicoesIniciais.x[i];
+            thisUser->ptrUserInfo->position->y = msgBackEnd.informacao.posicoesIniciais.y[i];
+        }
+    pUserInfo otherUsers = tData->ptrGameInfo->ptrOtherUsersHeader;
+    while (otherUsers != NULL) {
+        for (int i = 0; i < MAX_USERS; i++)
+            if (strcmp(msgBackEnd.informacao.posicoesIniciais.username[i], otherUsers->username) == 0) {
+                otherUsers->position->x = msgBackEnd.informacao.posicoesIniciais.x[i];
+                otherUsers->position->y = msgBackEnd.informacao.posicoesIniciais.y[i];
+            }
+        otherUsers = otherUsers->next;
+    }
+}
+
+void desenhaJogadores(ThreadDataFrontend *tData) {
+    pUser thisUser = tData->ptrGameInfo->ptrThisUser;
+    pUserInfo otherUsers = tData->ptrGameInfo->ptrOtherUsersHeader;
+    while (otherUsers != NULL) {
+        mvwaddch(tData->janelaMapa, otherUsers->position->y, otherUsers->position->x, otherUsers->identificador);
+        otherUsers = otherUsers->next;
+    }
+    mvwaddch(tData->janelaMapa, thisUser->ptrUserInfo->position->y, thisUser->ptrUserInfo->position->x,
+             thisUser->ptrUserInfo->identificador);
+    wrefresh(tData->janelaMapa);
+}
+
 void informaUser(ThreadDataFrontend *tData, MsgBackEnd msgBackEnd) {
     switch (msgBackEnd.tipoMensagem) {
         case tipo_block:
@@ -149,6 +179,11 @@ void informaUser(ThreadDataFrontend *tData, MsgBackEnd msgBackEnd) {
             break;
         case tipo_retorno_inscricao:
             mvwaddstr(tData->janelaLogs, 1, 1, msgBackEnd.informacao.retornoInscricao.mensagem);
+            break;
+        case tipo_start_game:
+            mvwaddstr(tData->janelaLogs, 1, 1, "Jogo começou.");
+            break;
+        case tipo_posicoes_iniciais:
             break;
     }
     wrefresh(tData->janelaLogs);
@@ -241,7 +276,10 @@ void *threadGerirBackend(void *arg) {
                 adicionaMapa(tData, msgBackEnd.informacao.startGame.mapa);
                 atualizaMapa(tData);
                 informaUser(tData, msgBackEnd);
-                //wrefresh(tData->janelaMapa);
+                break;
+            case tipo_posicoes_iniciais:
+                setPosicoesIniciais(tData, msgBackEnd);
+                desenhaJogadores(tData);
                 break;
         }
         close(pipeJogador);
