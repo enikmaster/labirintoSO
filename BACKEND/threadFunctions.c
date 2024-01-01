@@ -18,15 +18,16 @@ void *threadGerirFrontend(void *arg) {
     ThreadData *tData = (ThreadData *) arg;
     bool checkMsg = false;
     bool startTimer = false;
-    int serverPipe = open(SRV_FIFO, O_RDONLY);// pipe do servidor
-    if (serverPipe == -1) {
-        perror("[ERRO] Erro ao abrir o pipe do servidor.\n");
-        sigqueue(getpid(), SIGUSR2, (const union sigval) 0);
-        unlink(SRV_FIFO);
-        pthread_exit(NULL);
-    }
+    int serverPipe = 0;
     MsgFrontEnd msgFrontEnd;
     while (tData->continua == false) {
+        serverPipe = open(SRV_FIFO, O_RDONLY);// pipe do servidor
+        if (serverPipe == -1) {
+            perror("[ERRO] Erro ao abrir o pipe do servidor.\n");
+            sigqueue(getpid(), SIGUSR2, (const union sigval) 0);
+            unlink(SRV_FIFO);
+            pthread_exit(NULL);
+        }
         memset(&msgFrontEnd, 0, sizeof(msgFrontEnd));
         ssize_t bytesRead = read(serverPipe, &msgFrontEnd, sizeof(msgFrontEnd));
         if (bytesRead == 0) continue;

@@ -51,7 +51,7 @@ int comandoRbm();
 
 int comandoBegin();
 
-int comandoEnd();
+int comandoEnd(GameSetup *);
 
 int comandoKick(GameSetup *, char *);
 

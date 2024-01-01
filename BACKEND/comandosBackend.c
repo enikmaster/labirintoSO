@@ -136,8 +136,34 @@ int comandoBegin() {
     return 0;
 }
 
-int comandoEnd() {
-    return 0;
+int comandoEnd(GameSetup *gameSetup) {
+    // kick em todos os users
+    // free de tudo
+    // return 6
+
+    pUser ptrUser;
+    ptrUser = gameSetup->ptrUsersAtivosHeader;
+    MsgBackEnd msgBackEnd;
+    msgBackEnd.tipoMensagem = tipo_retorno_kick;
+
+    while (ptrUser != NULL) {
+        int pipeJogador = open(ptrUser->username, O_WRONLY);
+        if (pipeJogador == -1) {
+            perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
+            continue;
+        }
+
+        strcpy(msgBackEnd.informacao.retornoKick.username, ptrUser->username);
+        if (write(pipeJogador, &msgBackEnd, sizeof(msgBackEnd)) == -1) {
+            perror("[ERRO] Erro ao escrever no pipe do jogador.\n");
+            close(pipeJogador);
+            continue;
+        }
+        close(pipeJogador);
+        ptrUser = ptrUser->next;
+    }
+
+    return 6;
 }
 
 int comandoKick(GameSetup *gameSetup, char *username) {
