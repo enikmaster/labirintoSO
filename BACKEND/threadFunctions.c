@@ -1,16 +1,86 @@
 #include "../constantes.h"
 #include "motor.h"
 
-void *threadCountdownToStart(void *arg) {
-    //ThreadData *tData = (ThreadData *) arg;
-    int countdown = atoi(Inscricao);
-    do {
-        if (countdown <= 5) {
-            printf("[INFO] O jogo vai começar em %d segundos\n", countdown--);
-            fflush(stdout);
+// cenas do timer
+
+long int setTempoJogo(ThreadData *tData) {
+    long int tempoJogo;
+    if (tData->ptrGameSetup->nivel == 1) {
+        tempoJogo = tData->ptrGameSetup->ptrSetup->duracao;
+    } else {
+        long int nivel = tData->ptrGameSetup->nivel;
+        tempoJogo = tData->ptrGameSetup->ptrSetup->duracao - (tData->ptrGameSetup->ptrSetup->decremento * --nivel);
+    }
+    return tempoJogo;
+}
+
+void begin(ThreadData *tData) {
+    pUser ptrUser = tData->ptrGameSetup->ptrUsersAtivosHeader;
+    MsgBackEnd msgBackEnd;
+    msgBackEnd.tipoMensagem = tipo_start_game;
+    for (int y = 0; y < MAPA_LINHAS; ++y) {
+        for (int x = 0; x < MAPA_COLUNAS; ++x) {
+            msgBackEnd.informacao.startGame.mapa[y][x] = tData->ptrGameSetup->ptrMapa->mapa[y][x];
         }
-        sleep(1); // ver função clock_nanosleep() para ter mais pontos
-    } while (countdown > 0);
+    }
+    msgBackEnd.informacao.startGame.tempoJogo = tData->ptrGameSetup->ptrSetup->duracao;
+    msgBackEnd.informacao.startGame.nivel = tData->ptrGameSetup->nivel;
+    while (ptrUser != NULL) {
+        int pipeJogador = open(ptrUser->username, O_WRONLY);
+        if (pipeJogador == -1) {
+            perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
+            continue;
+        }
+        if (write(pipeJogador, &msgBackEnd, sizeof(msgBackEnd)) == -1) {
+            perror("[ERRO] Erro ao escrever no pipe do jogador.\n");
+            close(pipeJogador);
+            continue;
+        }
+        close(pipeJogador);
+        ptrUser = ptrUser->next;
+    }
+
+}
+
+void *threadTimers(void *arg) {
+    ThreadData *tData = (ThreadData *) arg;
+    long int tempoInscricao = tData->ptrGameSetup->ptrSetup->inscricao;
+    long int tempoJogo;
+
+    do {
+        // verificar se o jogo está ativo
+        if (!tData->ptrGameSetup->jogoAtivo) {
+            pthread_mutex_lock(&tData->ptrGameSetup->mutexJogadores);
+            if (tData->ptrGameSetup->usersAtivos >= tData->ptrGameSetup->ptrSetup->minJogadores) {
+                // começa a contar o tempo para o jogo começar
+                printf("\n[INFO] O jogo vai começar em %ld segundos.\n", tempoInscricao);
+                fflush(stdout);
+                if (--tempoInscricao <= 0) {
+                    tData->ptrGameSetup->jogoAtivo = true;
+                    tempoJogo = setTempoJogo(tData);
+                    // lança o jogo
+                    begin(tData);
+                } else {
+                    if (tData->ptrGameSetup->usersAtivos >= MAX_USERS) {
+                        tData->ptrGameSetup->jogoAtivo = true;
+                        tempoJogo = setTempoJogo(tData);
+                        // lança o jogo
+                        begin(tData);
+                    }
+                }
+            }
+            pthread_mutex_unlock(&tData->ptrGameSetup->mutexJogadores);
+
+        } else {
+            // verificar se o tempo de jogo chegou ao fim
+            // verificar se existe um vencedor
+            // mexer um block
+            //decrementaUmSegundo();
+        }
+
+
+        sleep(1);
+    } while (tData->continua == false);
     pthread_exit(NULL);
 }
 
@@ -324,66 +394,7 @@ void *threadGerirFrontend(void *arg) {
     pthread_exit(NULL);
 }
 
-// cenas do timer
 
-long int setTempoJogo(ThreadData *tData) {
-    long int tempoJogo;
-    if (tData->ptrGameSetup->nivel == 1) {
-        tempoJogo = tData->ptrGameSetup->tempoJogo;
-    } else {
-        //tempoJogo =
-    }
-    return tempoJogo;
-}
-
-void begin(ThreadData *tData, long int *tempoJogo) {
-    // verifica o nível do jogo
-    // verifica o tempo de jogo
-    // verifica o tempo de decremento
-    // envia o mapa para os clientes
-}
-
-void *threadTimers(void *arg) {
-    ThreadData *tData = (ThreadData *) arg;
-    long int tempoInscricao = tData->ptrGameSetup->ptrSetup->inscricao;
-    long int tempoJogo;
-
-    do {
-        // verificar se o jogo está ativo
-        if (!tData->ptrGameSetup->jogoAtivo) {
-            pthread_mutex_lock(&tData->ptrGameSetup->mutexJogadores);
-            if (tData->ptrGameSetup->usersAtivos >= tData->ptrGameSetup->ptrSetup->minJogadores) {
-                // começa a contar o tempo para o jogo começar
-                if (--tempoInscricao <= 0) {
-                    tData->ptrGameSetup->jogoAtivo = true;
-                    // inicia o tempo de jogo;
-                    //tempoJogo = setTempoJogo(tData);
-                    // lança o jogo
-                    //begin(tData, &tempoJogo);
-                } else {
-                    if (tData->ptrGameSetup->usersAtivos >= MAX_USERS) {
-                        tData->ptrGameSetup->jogoAtivo = true;
-                        // lança o jogo
-                        //begin(tData, &tempoJogo);
-                    }
-                }
-            }
-            pthread_mutex_unlock(&tData->ptrGameSetup->mutexJogadores);
-
-        } else {
-
-        }
-
-
-        // verificar se o tempo de jogo chegou ao fim
-        // verificar se existe um vencedor
-        // mexer um block
-        //decrementaUmSegundo();
-
-        sleep(1);
-    } while (tData->continua == false);
-    pthread_exit(NULL);
-}
 
 // TODO: uma função para enviar uma mensagem a todos os clientes com as informações do jogo
 

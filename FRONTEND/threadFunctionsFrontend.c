@@ -1,6 +1,46 @@
 #include "../constantes.h"
 #include "jogoUI.h"
 
+void adicionaMapa(ThreadDataFrontend *tData, char mapa[MAPA_LINHAS][MAPA_COLUNAS]) {
+    pthread_mutex_lock(&tData->trinco);
+    for (int y = 0; y < MAPA_LINHAS; ++y)
+        for (int x = 0; x < MAPA_COLUNAS; ++x)
+            if (mapa[y][x] != ' ')
+                tData->ptrGameInfo->mapa[y][x] = mapa[y][x];
+    pthread_mutex_unlock(&tData->trinco);
+}
+
+void atualizaMapa(ThreadDataFrontend *tData) {
+    pthread_mutex_lock(&tData->trinco);
+    for (int y = 0; y < MAPA_LINHAS; ++y)
+        for (int x = 0; x < MAPA_COLUNAS; ++x) {
+            if (tData->ptrGameInfo->mapa[y][x] != ' ')
+                mvwaddch(tData->janelaMapa, y + 1, x + 1, tData->ptrGameInfo->mapa[y][x]);
+        }
+    pthread_mutex_unlock(&tData->trinco);
+    wrefresh(tData->janelaMapa);
+}
+
+void adicionaNivel(ThreadDataFrontend *tData, int nivel) {
+    pthread_mutex_lock(&tData->trinco);
+    tData->ptrGameInfo->nivel = nivel;
+    pthread_mutex_unlock(&tData->trinco);
+}
+
+void adicionaTempoJogo(ThreadDataFrontend *tData, long int tempoJogo) {
+    pthread_mutex_lock(&tData->trinco);
+    tData->ptrGameInfo->tempoJogo = tempoJogo;
+    pthread_mutex_unlock(&tData->trinco);
+}
+
+void desenhaTempoJogoNivel(ThreadDataFrontend *tData) {
+    pthread_mutex_lock(&tData->trinco);
+    mvwprintw(tData->janelaTempoNivel, 1, 1, "Tempo de jogo: %ld   |   Nível: %d ", tData->ptrGameInfo->tempoJogo,
+              tData->ptrGameInfo->nivel);
+    pthread_mutex_unlock(&tData->trinco);
+    wrefresh(tData->janelaTempoNivel);
+}
+
 void adicionaBlock(ThreadDataFrontend *tData, int x, int y) {
     pBlock blocks = tData->ptrGameInfo->ptrBlocksHeader;
     while (blocks != NULL && blocks->next != NULL) {
@@ -171,6 +211,7 @@ void *threadGerirBackend(void *arg) {
             case tipo_retorno_kick:
                 // forçar o comandos end do cliente
                 delwin(tData->janelaMapa);
+                delwin(tData->janelaTempoNivel);
                 delwin(tData->janelaComandos);
                 delwin(tData->janelaLogs);
                 delwin(tData->janelaChat);
@@ -192,6 +233,15 @@ void *threadGerirBackend(void *arg) {
                 wrefresh(tData->janelaMapa);
                 break;
             case tipo_atualizar:
+                break;
+            case tipo_start_game:
+                adicionaNivel(tData, msgBackEnd.informacao.startGame.nivel);
+                adicionaTempoJogo(tData, msgBackEnd.informacao.startGame.tempoJogo);
+                desenhaTempoJogoNivel(tData);
+                adicionaMapa(tData, msgBackEnd.informacao.startGame.mapa);
+                atualizaMapa(tData);
+                informaUser(tData, msgBackEnd);
+                //wrefresh(tData->janelaMapa);
                 break;
         }
         close(pipeJogador);
