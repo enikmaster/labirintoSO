@@ -1,6 +1,6 @@
 #!/bin/bash
 # Define a variável de ambiente "INSCRICAO" com o valor "30"
-export INSCRICAO=30
+export INSCRICAO=3
 
 # Define a variável de ambiente "NPLAYERS" com o valor "3"
 export NPLAYERS=2

@@ -27,7 +27,6 @@ void setGameSetup(GameSetup *gameSetup) {
     gameSetup->jogoAtivo = false;
     gameSetup->usersAtivos = 0;
     gameSetup->usersEspera = 0;
-    gameSetup->tempoJogo = 0;
     gameSetup->nivel = 1;
     char *endptr;
     gameSetup->ptrSetup = malloc(sizeof(Setup));

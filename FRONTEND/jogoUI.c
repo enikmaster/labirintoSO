@@ -34,6 +34,7 @@ int main(int argc, char *argv[]) {
             .janelaChat = NULL,
             .janelaLogs = NULL,
             .janelaComandos = NULL,
+            .janelaTempoNivel = NULL,
             .ptrGameInfo = &gameInfoFrontend,
             .trinco = PTHREAD_MUTEX_INITIALIZER
     };
@@ -45,21 +46,23 @@ int main(int argc, char *argv[]) {
     attrset(A_DIM);
     cbreak();
 
-    mvprintw(1, 10, "[ Tempo de jogo: %d   |   Nível: %d ]", tData.ptrGameInfo->tempoJogo, tData.ptrGameInfo->nivel);
-    mvprintw(2, 10, "[ space - muda para o foco da janela de baixo ]");
-    WINDOW *janelaMapa = newwin(22, 82, 3, 1);
-    WINDOW *janelaComandos = newwin(15, 82, 26, 1);
-    WINDOW *janelaChat = newwin(22, 35, 3, 85);
-    WINDOW *janelaLogs = newwin(15, 35, 26, 85);
+    mvprintw(1, 10, "[ space - para inserir comandos ]");
+    WINDOW *janelaMapa = newwin(MAPA_LINHAS + 2, MAPA_COLUNAS + 2, 3, 1);
+    WINDOW *janelaTempoNivel = newwin(3, MAPA_COLUNAS + 2, MAPA_LINHAS + 4, 1);
+    WINDOW *janelaComandos = newwin(15, MAPA_COLUNAS + 2, MAPA_LINHAS + 8, 1);
+    WINDOW *janelaChat = newwin(MAPA_LINHAS + 2, 35, 3, MAPA_COLUNAS + 5);
+    WINDOW *janelaLogs = newwin(15, 35, MAPA_LINHAS + 6, MAPA_COLUNAS + 5);
 
     pthread_mutex_lock(&tData.trinco);
     tData.janelaMapa = janelaMapa;
+    tData.janelaTempoNivel = janelaTempoNivel;
+    tData.janelaComandos = janelaComandos;
     tData.janelaChat = janelaChat;
     tData.janelaLogs = janelaLogs;
-    tData.janelaComandos = janelaComandos;
     pthread_mutex_unlock(&tData.trinco);
 
     desenhaMapa(janelaMapa, 2);
+    desenhaMapa(janelaTempoNivel, 2);
     desenhaMapa(janelaComandos, 1);
     desenhaMapa(janelaChat, 2);
     desenhaMapa(janelaLogs, 2);
@@ -74,6 +77,7 @@ int main(int argc, char *argv[]) {
 
     trataTeclado(&tData);
     delwin(janelaMapa);
+    delwin(janelaTempoNivel);
     delwin(janelaComandos);
     delwin(janelaLogs);
     delwin(janelaChat);

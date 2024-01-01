@@ -95,7 +95,8 @@ typedef enum {
     tipo_retorno_kick,
     tipo_block,
     tipo_remove_block,
-    tipo_atualizar
+    tipo_atualizar,
+    tipo_start_game
 } TipoBackEnd;
 
 // definir aqui os tipos de mensagem de retorno
@@ -150,6 +151,14 @@ struct TipoAtualizar {
     char mensagem[TAMANHO_CONTEUDO]; // mensagem do jogador
 };
 
+typedef struct TipoStartGame TipoStartGame;
+struct TipoStartGame {
+    //char origem[TAMANHO_NAMES]; // nome da origem (neste caso servidor)
+    char mapa[MAPA_LINHAS][MAPA_COLUNAS]; // mapa do jogo
+    long int tempoJogo;
+    int nivel;
+};
+
 typedef struct MsgBackEnd MsgBackEnd;
 struct MsgBackEnd {
     TipoBackEnd tipoMensagem;
@@ -162,6 +171,7 @@ struct MsgBackEnd {
         TipoBlock block;
         TipoRemoveBlock removeBlock;
         TipoTerminarPrograma terminarPrograma;
+        TipoStartGame startGame;
     } informacao;
 };
 
@@ -246,7 +256,6 @@ typedef struct {
     bool jogoAtivo;
     int usersAtivos;
     int usersEspera;
-    int tempoJogo;
     int nivel;
     pthread_mutex_t mutexJogadores;
     pthread_mutex_t mutexMapa;
@@ -261,7 +270,7 @@ struct GameInfoFrontend {
     pBlock ptrBlocksHeader;
     pUser ptrThisUser;
     pUserInfo ptrOtherUsersHeader;
-    int tempoJogo;
+    long int tempoJogo;
     int nivel;
 };
 
@@ -269,9 +278,10 @@ typedef struct ThreadDataFrontend ThreadDataFrontend, *pThreadDataFrontend;
 struct ThreadDataFrontend {
     bool continua;
     WINDOW *janelaMapa;
+    WINDOW *janelaTempoNivel;
+    WINDOW *janelaComandos;
     WINDOW *janelaChat;
     WINDOW *janelaLogs;
-    WINDOW *janelaComandos;
     GameInfoFrontend *ptrGameInfo;
     pthread_mutex_t trinco;
 };
