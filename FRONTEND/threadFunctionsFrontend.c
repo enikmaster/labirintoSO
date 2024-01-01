@@ -82,6 +82,10 @@ void informaUser(ThreadDataFrontend *tData, MsgBackEnd msgBackEnd) {
             mvwprintw(tData->janelaLogs, 1, 1, "O utilizador %s saiu do jogo.",
                       msgBackEnd.informacao.retornoLogout.username);
             break;
+        case tipo_retorno_kick:
+            mvwprintw(tData->janelaLogs, 1, 1, "O utilizador %s foi kickado do jogo.",
+                      msgBackEnd.informacao.retornoLogout.username);
+            break;
         case tipo_retorno_players:
             for (int i = 0; i < 5; i++) {
                 if (strlen(msgBackEnd.informacao.retornoPlayers.listaJogadores[i]) > 0)
@@ -155,6 +159,18 @@ void *threadGerirBackend(void *arg) {
                 removeUser(tData, msgBackEnd.informacao.retornoLogout.username);
                 wrefresh(tData->janelaLogs);
                 break;
+            case tipo_retorno_kick:
+                // forçar o comandos end do cliente
+                delwin(tData->janelaMapa);
+                delwin(tData->janelaComandos);
+                delwin(tData->janelaLogs);
+                delwin(tData->janelaChat);
+                endwin();
+
+                pthread_mutex_destroy(&tData->trinco);
+                unlink(tData->ptrGameInfo->ptrThisUser->username);
+                fecharCliente(tData->ptrGameInfo);
+                exit(0);
             case tipo_block:
                 adicionaBlock(tData, msgBackEnd.informacao.block.x, msgBackEnd.informacao.block.y);
                 informaUser(tData, msgBackEnd);
