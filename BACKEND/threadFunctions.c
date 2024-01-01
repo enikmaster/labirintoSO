@@ -324,7 +324,11 @@ void *threadGerirFrontend(void *arg) {
 void *threadTimers(void *arg) {
     ThreadData *tData = (ThreadData *) arg;
     do {
+        // verificar se o jogo está ativo
 
+        // verificar se o tempo de jogo chegou ao fim
+        // verificar se existe um vencedor
+        // mexer um block
         //decrementaUmSegundo();
         sleep(1);
     } while (tData->continua == false);

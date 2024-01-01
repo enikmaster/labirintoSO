@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
                 controlo = comandoBmov(&gameSetup);
                 break;
             case 4:
-                controlo = comandoRbm();
+                controlo = comandoRbm(&gameSetup);
                 break;
             case 5:
                 controlo = comandoBegin();

@@ -47,7 +47,7 @@ int comandoBots(GameSetup *);
 
 int comandoBmov(GameSetup *);
 
-int comandoRbm();
+int comandoRbm(GameSetup *);
 
 int comandoBegin();
 

@@ -13,6 +13,7 @@ void setRandomPosition(Map *ptrMapa, Position *ptrPosition) {
 
 int comandoUsers(GameSetup *gameSetup) {
     pUser ptrUser;
+    pthread_mutex_lock(&gameSetup->mutexJogadores);
     if (gameSetup->usersAtivos == 0) {
         printf("[INFO] Não existem jogadores ativos.\n");
         fflush(stdout);
@@ -37,11 +38,13 @@ int comandoUsers(GameSetup *gameSetup) {
             ptrUser = ptrUser->next;
         }
     }
+    pthread_mutex_unlock(&gameSetup->mutexJogadores);
     return 0;
 }
 
 int comandoBots(GameSetup *gameSetup) {
     pBot ptrBot;
+    pthread_mutex_lock(&gameSetup->mutexBots);
     if (gameSetup->ptrBotsHeader == NULL) {
         printf("[INFO] Não existem bots ativos.\n");
         fflush(stdout);
@@ -53,18 +56,21 @@ int comandoBots(GameSetup *gameSetup) {
             ptrBot = ptrBot->next;
         }
     }
+    pthread_mutex_unlock(&gameSetup->mutexBots);
     return 0;
 }
 
 int comandoBmov(GameSetup *gameSetup) {
     pBlock ptrBlocks;
     // adicionar um Block ao mapa
-    ptrBlocks = gameSetup->ptrMapa->ptrBlocksHeader;
     int nBlocks = 1;
+    pthread_mutex_lock(&gameSetup->mutexMapa);
+    ptrBlocks = gameSetup->ptrMapa->ptrBlocksHeader;
     while (ptrBlocks != NULL && ptrBlocks->next != NULL) {
         ptrBlocks = ptrBlocks->next;
         nBlocks++;
     }
+    pthread_mutex_unlock(&gameSetup->mutexMapa);
     if (nBlocks >= MAX_BLOCKS) {
         printf("[INFO] Não é possível adicionar mais Blocks.\n");
         fflush(stdout);
@@ -73,28 +79,25 @@ int comandoBmov(GameSetup *gameSetup) {
     pBlock newBlock = malloc(sizeof(Block));
     if (newBlock == NULL) {
         perror("[ERRO] Erro ao alocar memória para o Block.\n");
-        return 6;
+        return 0;
     }
     pPosition ptrPosition = malloc(sizeof(Position));
     if (ptrPosition == NULL) {
         perror("[ERRO] Erro ao alocar memória para o Position.\n");
         free(newBlock);
-        return 6;
+        return 0;
     }
     ptrPosition->next = NULL;
     newBlock->position = ptrPosition;
     setRandomPosition(gameSetup->ptrMapa, newBlock->position);
     newBlock->identificador = 'B';
     newBlock->next = NULL;
-    if (ptrBlocks == NULL) {
-        pthread_mutex_lock(&gameSetup->mutexBots);
+    pthread_mutex_lock(&gameSetup->mutexMapa);
+    if (ptrBlocks == NULL)
         gameSetup->ptrMapa->ptrBlocksHeader = newBlock;
-        pthread_mutex_unlock(&gameSetup->mutexBots);
-    } else {
-        pthread_mutex_lock(&gameSetup->mutexBots);
+    else
         ptrBlocks->next = newBlock;
-        pthread_mutex_unlock(&gameSetup->mutexBots);
-    }
+    pthread_mutex_unlock(&gameSetup->mutexMapa);
 
     MsgBackEnd msgBlock = {
             .tipoMensagem = tipo_block,
@@ -103,6 +106,7 @@ int comandoBmov(GameSetup *gameSetup) {
     msgBlock.informacao.block.x = newBlock->position->x;
     msgBlock.informacao.block.y = newBlock->position->y;
 
+    pthread_mutex_lock(&gameSetup->mutexMapa);
     pUser users = gameSetup->ptrUsersAtivosHeader;
     while (users != NULL) {
         int msgTodos = open(users->username, O_WRONLY);
@@ -111,24 +115,71 @@ int comandoBmov(GameSetup *gameSetup) {
             close(msgTodos);
             free(newBlock);
             free(ptrPosition);
-            return 6;
+            pthread_mutex_unlock(&gameSetup->mutexMapa);
+            return 0;
         }
         if (write(msgTodos, &msgBlock, sizeof(msgBlock)) == -1) {
             perror("[ERRO] Erro ao escrever no pipe do jogador.\n");
             close(msgTodos);
             free(newBlock);
             free(ptrPosition);
-            return 6;
+            pthread_mutex_unlock(&gameSetup->mutexMapa);
+            return 0;
         }
         close(msgTodos);
         users = users->next;
     }
+    pthread_mutex_unlock(&gameSetup->mutexMapa);
     printf("[INFO] Block adicionado na posição (x: %d, y: %d)\n", newBlock->position->x, newBlock->position->y);
     fflush(stdout);
     return 0;
 }
 
-int comandoRbm() {
+int comandoRbm(GameSetup *gameSetup) {
+    pBlock ptrBlock;
+    pthread_mutex_lock(&gameSetup->mutexMapa);
+    ptrBlock = gameSetup->ptrMapa->ptrBlocksHeader;
+    pthread_mutex_unlock(&gameSetup->mutexMapa);
+    // verificar se há blocks
+    if (ptrBlock == NULL) {
+        printf("[INFO] Não existem Blocks no mapa.\n");
+        fflush(stdout);
+        return 0;
+    }
+    // remover um Block do mapa
+    pthread_mutex_lock(&gameSetup->mutexMapa);
+    gameSetup->ptrMapa->ptrBlocksHeader = gameSetup->ptrMapa->ptrBlocksHeader->next;
+    pthread_mutex_unlock(&gameSetup->mutexMapa);
+    free(ptrBlock->position);
+    free(ptrBlock);
+    // avisar todos os jogadores
+    if (gameSetup->usersAtivos == 0) return 0;
+    MsgBackEnd msgBlock = {
+            .tipoMensagem = tipo_remove_block,
+    };
+    strcpy(msgBlock.informacao.removeBlock.origem, "motor");
+    pthread_mutex_lock(&gameSetup->mutexMapa);
+    pUser users = gameSetup->ptrUsersAtivosHeader;
+    while (users != NULL) {
+        int msgTodos = open(users->username, O_WRONLY);
+        if (msgTodos == -1) {
+            perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
+            close(msgTodos);
+            pthread_mutex_unlock(&gameSetup->mutexMapa);
+            return 0;
+        }
+        if (write(msgTodos, &msgBlock, sizeof(msgBlock)) == -1) {
+            perror("[ERRO] Erro ao escrever no pipe do jogador.\n");
+            close(msgTodos);
+            pthread_mutex_unlock(&gameSetup->mutexMapa);
+            return 0;
+        }
+        close(msgTodos);
+        users = users->next;
+    }
+    pthread_mutex_unlock(&gameSetup->mutexMapa);
+    printf("[INFO] Block removido.\n");
+    fflush(stdout);
     return 0;
 }
 
