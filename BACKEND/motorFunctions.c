@@ -350,7 +350,6 @@ bool checkIfPositionAvailable(ThreadData *tData, int pos, char *username, char d
     }
     pthread_mutex_unlock(&tData->ptrGameSetup->mutexMapa);
 
-// TODO ola
 
     return true;
 }
