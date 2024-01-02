@@ -75,12 +75,12 @@ void adicionaBlock(ThreadDataFrontend *tData, int x, int y) {
 void removeBlock(ThreadDataFrontend *tData) {
     pBlock blocks = tData->ptrGameInfo->ptrBlocksHeader;
     if (blocks == NULL) return;
-    mvwaddch(tData->janelaMapa, blocks->position->y, blocks->position->x, ' ');
     pthread_mutex_lock(&tData->trinco);
+    mvwaddch(tData->janelaMapa, blocks->position->y, blocks->position->x, ' ');
     tData->ptrGameInfo->ptrBlocksHeader = blocks->next;
-    pthread_mutex_unlock(&tData->trinco);
     free(blocks->position);
     free(blocks);
+    pthread_mutex_unlock(&tData->trinco);
 }
 
 void desenhaBlock(ThreadDataFrontend *tData, int x, int y) {
@@ -99,6 +99,7 @@ void apagaUserDoMapa(ThreadDataFrontend *tData, char *username) {
 }
 
 void removeUser(ThreadDataFrontend *tData, char *username) {
+    pthread_mutex_lock(&tData->trinco);
     pUserInfo users = tData->ptrGameInfo->ptrOtherUsersHeader;
     pUserInfo prev = NULL;
     while (users != NULL) {
@@ -108,19 +109,17 @@ void removeUser(ThreadDataFrontend *tData, char *username) {
     }
     if (users == NULL) return;
     if (prev == NULL) {
-        pthread_mutex_lock(&tData->trinco);
         tData->ptrGameInfo->ptrOtherUsersHeader = users->next;
-        pthread_mutex_unlock(&tData->trinco);
     } else {
-        pthread_mutex_lock(&tData->trinco);
         prev->next = users->next;
-        pthread_mutex_unlock(&tData->trinco);
     }
     free(users->position);
     free(users);
+    pthread_mutex_unlock(&tData->trinco);
 }
 
 void setPosicoesIniciais(ThreadDataFrontend *tData, MsgBackEnd msgBackEnd) {
+    pthread_mutex_lock(&tData->trinco);
     pUser thisUser = tData->ptrGameInfo->ptrThisUser;
     for (int i = 0; i < MAX_USERS; i++)
         if (strcmp(msgBackEnd.informacao.posicoesIniciais.username[i], thisUser->username) == 0) {
@@ -136,17 +135,21 @@ void setPosicoesIniciais(ThreadDataFrontend *tData, MsgBackEnd msgBackEnd) {
             }
         otherUsers = otherUsers->next;
     }
+    pthread_mutex_unlock(&tData->trinco);
 }
 
 void desenhaJogadores(ThreadDataFrontend *tData) {
+    pthread_mutex_lock(&tData->trinco);
     pUser thisUser = tData->ptrGameInfo->ptrThisUser;
     pUserInfo otherUsers = tData->ptrGameInfo->ptrOtherUsersHeader;
     while (otherUsers != NULL) {
-        mvwaddch(tData->janelaMapa, otherUsers->position->y, otherUsers->position->x, otherUsers->identificador);
+        mvwaddch(tData->janelaMapa, otherUsers->position->y + 1, otherUsers->position->x + 1,
+                 otherUsers->identificador);
         otherUsers = otherUsers->next;
     }
-    mvwaddch(tData->janelaMapa, thisUser->ptrUserInfo->position->y, thisUser->ptrUserInfo->position->x,
+    mvwaddch(tData->janelaMapa, thisUser->ptrUserInfo->position->y + 1, thisUser->ptrUserInfo->position->x + 1,
              thisUser->ptrUserInfo->identificador);
+    pthread_mutex_unlock(&tData->trinco);
     wrefresh(tData->janelaMapa);
 }
 
@@ -182,6 +185,9 @@ void informaUser(ThreadDataFrontend *tData, MsgBackEnd msgBackEnd) {
             break;
         case tipo_start_game:
             mvwaddstr(tData->janelaLogs, 1, 1, "Jogo começou.");
+            break;
+        case tipo_terminar:
+            mvwaddstr(tData->janelaLogs, 1, 1, "Jogo terminou. Por favor carrega numa tecla para sair.");
             break;
         case tipo_posicoes_iniciais:
             break;
@@ -234,6 +240,13 @@ void *threadGerirBackend(void *arg) {
             case tipo_retorno_players:
                 informaUser(tData, msgBackEnd);
                 break;
+            case tipo_retorno_kick:
+            case tipo_terminar:
+                informaUser(tData, msgBackEnd);
+                pthread_mutex_lock(&tData->trinco);
+                tData->continua = true;
+                pthread_mutex_unlock(&tData->trinco);
+                pthread_exit(NULL);
             case tipo_retorno_chat:
                 informaUser(tData, msgBackEnd);
                 wrefresh(tData->janelaChat);
@@ -243,19 +256,6 @@ void *threadGerirBackend(void *arg) {
                 apagaUserDoMapa(tData, msgBackEnd.informacao.retornoLogout.username);
                 removeUser(tData, msgBackEnd.informacao.retornoLogout.username);
                 break;
-            case tipo_retorno_kick:
-                // forçar o comandos end do cliente
-                delwin(tData->janelaMapa);
-                delwin(tData->janelaTempoNivel);
-                delwin(tData->janelaComandos);
-                delwin(tData->janelaLogs);
-                delwin(tData->janelaChat);
-                endwin();
-                pthread_mutex_destroy(&tData->trinco);
-                unlink(tData->ptrGameInfo->ptrThisUser->username);
-                fecharCliente(tData->ptrGameInfo);
-                exit(0); // não tivemos tempo para entender o ncurses
-                //break;
             case tipo_block:
                 adicionaBlock(tData, msgBackEnd.informacao.block.x, msgBackEnd.informacao.block.y);
                 informaUser(tData, msgBackEnd);
