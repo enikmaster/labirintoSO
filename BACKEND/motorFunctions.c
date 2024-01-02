@@ -325,6 +325,36 @@ void fecharJogo(GameSetup *gameSetup) {
     pthread_mutex_destroy(&gameSetup->mutexGeral);
 }
 
+bool checkIfPositionAvailable(ThreadData *tData, int pos, char *username, char directionChar) {
+    pUser user;
+
+    // get user by username
+    for (user = tData->ptrGameSetup->ptrUsersAtivosHeader; user != NULL; user = user->next) {
+        if (strcmp(user->username, username) == 0) break;
+    }
+    if (user == NULL) {
+        printf("[ERRO] Erro ao encontrar o user\n");
+        return false;
+    }
+
+    pthread_mutex_lock(&tData->ptrGameSetup->mutexMapa);
+    if (directionChar == 'y') {
+        if (tData->ptrGameSetup->ptrMapa->mapa[pos][user->ptrUserInfo->position->x] == ' ') {
+            return true;
+        }
+    }
+    else if (directionChar == 'x') {
+        if (tData->ptrGameSetup->ptrMapa->mapa[user->ptrUserInfo->position->y][pos] == ' ') {
+            return true;
+        }
+    }
+    pthread_mutex_unlock(&tData->ptrGameSetup->mutexMapa);
+
+
+
+    return true;
+}
+
 void sigHandler(int sig) {
     if (sig == SIGINT) {
         printf("\n[INFO] A fechar o jogo...\n");

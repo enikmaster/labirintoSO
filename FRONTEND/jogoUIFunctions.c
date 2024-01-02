@@ -86,34 +86,44 @@ void desenhaMapa(WINDOW *janela, int tipo) {
     wrefresh(janela);
 }
 
+void comandoDirecao(int direcao, char *username) {
+    MsgFrontEnd msgFrontEnd;
+    msgFrontEnd.tipoMensagem = tipo_movimento;
+    msgFrontEnd.informacao.movimento.direcao = direcao;
+    strcpy(msgFrontEnd.informacao.movimento.username, username);
+    int fd = open(SRV_FIFO, O_WRONLY); // pipe do servidor
+    if (fd == -1) {
+        perror("[ERRO] Erro ao abrir o pipe do servidor.\n");
+        exit(-1);
+    }
+    if (write(fd, &msgFrontEnd, sizeof(msgFrontEnd)) == -1) {
+        perror("[ERRO] Erro ao escrever no pipe do servidor.\n");
+        close(fd);
+        exit(-1);
+    }
+    close(fd);
+}
+
 void trataTeclado(ThreadDataFrontend *tData) {
     keypad(tData->janelaMapa, TRUE);
     int tecla = wgetch(tData->janelaMapa);
     char comando[100];
     while (!tData->continua && tecla != 113) {
         if (tecla == KEY_UP) {
-            // envia mensagem ao servidor
-            // comandoUp(KEY_UP);
+            comandoDirecao(KEY_UP, tData->ptrGameInfo->ptrThisUser->username);
             desenhaMapa(tData->janelaMapa, 2);
-            mvwprintw(tData->janelaMapa, 1, 1, "Estou a carregar na tecla UP na posição 1,1 ");
             wrefresh(tData->janelaMapa);
         } else if (tecla == KEY_RIGHT) {
-            // envia mensagem ao servidor
-            // comandoRight(KEY_RIGHT);
+            comandoDirecao(KEY_RIGHT, tData->ptrGameInfo->ptrThisUser->username);
             desenhaMapa(tData->janelaMapa, 2);
-            mvwprintw(tData->janelaMapa, 1, 1, "Estou a carregar na tecla RIGHT na posição 1,1");
             wrefresh(tData->janelaMapa);
         } else if (tecla == KEY_LEFT) {
-            // envia mensagem ao servidor
-            // comandoLeft(KEY_LEFT);
+            comandoDirecao(KEY_LEFT, tData->ptrGameInfo->ptrThisUser->username);
             desenhaMapa(tData->janelaMapa, 2);
-            mvwprintw(tData->janelaMapa, 1, 1, "Estou a carregar na tecla LEFT na posição 1,1");
             wrefresh(tData->janelaMapa);
         } else if (tecla == KEY_DOWN) {
-            // envia mensagem ao servidor
-            // comandoDown(KEY_DOWN);
+            comandoDirecao(KEY_DOWN, tData->ptrGameInfo->ptrThisUser->username);
             desenhaMapa(tData->janelaMapa, 2);
-            mvwprintw(tData->janelaMapa, 1, 1, "Estou a carregar na tecla DOWN na posição 1,1");
             wrefresh(tData->janelaMapa);
         } else if (tecla == ' ') {
             wclear(tData->janelaComandos);

@@ -296,6 +296,91 @@ void *threadGerirFrontend(void *arg) {
 
                 break;
             case tipo_movimento:
+                if (true) {
+                    bool enviaMensagem = false;
+                    pUser ptrUser = tData->ptrGameSetup->ptrUsersAtivosHeader;
+                    pUser ptrUser2;
+                    char direction;
+                    while (ptrUser != NULL) {
+                        if (strcmp(ptrUser->username, msgFrontEnd.informacao.movimento.username) == 0) {
+                            switch (msgFrontEnd.informacao.movimento.direcao) {
+                                case 0403: // cima
+                                    if (ptrUser->ptrUserInfo->position->y - 1 <= MAPA_LINHAS && ptrUser->ptrUserInfo->position->y - 1 >= 0) {
+                                        direction = 'y';
+                                        if (checkIfPositionAvailable(tData, ptrUser->ptrUserInfo->position->y - 1, msgFrontEnd.informacao.movimento.username, direction)) {
+                                            pthread_mutex_lock(&tData->trinco);
+                                            ptrUser->ptrUserInfo->position->y--;
+                                            pthread_mutex_unlock(&tData->trinco);
+                                            enviaMensagem = true;
+                                        }
+                                    }
+                                    break;
+                                case 0402: // baixo
+                                    if (ptrUser->ptrUserInfo->position->y + 1 <= MAPA_LINHAS && ptrUser->ptrUserInfo->position->y + 1 >= 0) {
+                                        direction = 'y';
+                                        if (checkIfPositionAvailable(tData, ptrUser->ptrUserInfo->position->y + 1, msgFrontEnd.informacao.movimento.username, direction)) {
+                                            pthread_mutex_lock(&tData->trinco);
+                                            ptrUser->ptrUserInfo->position->y++;
+                                            pthread_mutex_unlock(&tData->trinco);
+                                            enviaMensagem = true;
+                                        }
+                                    }
+                                    break;
+                                case 0404: // esquerda
+                                    if (ptrUser->ptrUserInfo->position->x - 1 <= MAPA_COLUNAS && ptrUser->ptrUserInfo->position->x - 1 >= 0) {
+                                        direction = 'x';
+                                        if (checkIfPositionAvailable(tData, ptrUser->ptrUserInfo->position->x - 1, msgFrontEnd.informacao.movimento.username, direction)) {
+                                            pthread_mutex_lock(&tData->trinco);
+                                            ptrUser->ptrUserInfo->position->x--;
+                                            pthread_mutex_unlock(&tData->trinco);
+                                            enviaMensagem = true;
+                                        }
+                                    }
+                                    break;
+                                case 0405: // direita
+                                    if (ptrUser->ptrUserInfo->position->x + 1 <= MAPA_COLUNAS && ptrUser->ptrUserInfo->position->x + 1 >= 0) {
+                                        direction = 'x';
+                                        if (checkIfPositionAvailable(tData, ptrUser->ptrUserInfo->position->x + 1, msgFrontEnd.informacao.movimento.username, direction)) {
+                                            pthread_mutex_lock(&tData->trinco);
+                                            ptrUser->ptrUserInfo->position->x++;
+                                            pthread_mutex_unlock(&tData->trinco);
+                                            enviaMensagem = true;
+                                        }
+                                    }
+                                    break;
+                            }
+                        }
+
+                        if (enviaMensagem) {
+                            // envia mensagem de atualização de posição para todos os jogadores
+                            MsgBackEnd msgBackEnd;
+                            msgBackEnd.tipoMensagem = tipo_atualizar;
+                            msgBackEnd.informacao.atualizar.x = ptrUser->ptrUserInfo->position->x;
+                            msgBackEnd.informacao.atualizar.y = ptrUser->ptrUserInfo->position->y;
+                            msgBackEnd.informacao.atualizar.identificador = ptrUser->ptrUserInfo->identificador;
+                            strcpy(msgBackEnd.informacao.atualizar.username, msgFrontEnd.informacao.movimento.username);
+                            ptrUser2 = tData->ptrGameSetup->ptrUsersAtivosHeader;
+                            while (ptrUser2 != NULL) {
+                                int pipeJogador = open(ptrUser2->username, O_WRONLY);
+                                if (pipeJogador == -1) {
+                                    perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
+                                    continue;
+                                }
+
+                                if (write(pipeJogador, &msgBackEnd, sizeof(msgBackEnd)) == -1) {
+                                    perror("[ERRO] Erro ao escrever no pipe do jogador.\n");
+                                    close(pipeJogador);
+                                    continue;
+                                }
+                                close(pipeJogador);
+                                ptrUser2 = ptrUser2->next;
+                            }
+                            enviaMensagem = false;
+                            break;
+                        }
+                        ptrUser = ptrUser->next;
+                    }
+                }
                 break;
             case tipo_informacao:
                 // le pedido do cliente e processa-o

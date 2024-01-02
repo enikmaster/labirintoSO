@@ -21,8 +21,6 @@ void trataTeclado(ThreadDataFrontend *);
 
 int verificaComandoUI(char *, WINDOW *);
 
-bool checkIfUserAtivo(char *);
-
 void *threadGerirBackend(void *);
 
 void fecharCliente(GameInfoFrontend *);
