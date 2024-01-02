@@ -4,16 +4,19 @@
 // cenas do timer
 long int setTempoJogo(ThreadData *tData) {
     long int tempoJogo;
+    pthread_mutex_lock(&tData->ptrGameSetup->mutexGeral);
     if (tData->ptrGameSetup->nivel == 1) {
         tempoJogo = tData->ptrGameSetup->ptrSetup->duracao;
     } else {
         long int nivel = tData->ptrGameSetup->nivel;
         tempoJogo = tData->ptrGameSetup->ptrSetup->duracao - (tData->ptrGameSetup->ptrSetup->decremento * --nivel);
     }
+    pthread_mutex_unlock(&tData->ptrGameSetup->mutexGeral);
     return tempoJogo;
 }
 
 void begin(ThreadData *tData) {
+    pthread_mutex_lock(&tData->ptrGameSetup->mutexJogadores);
     pUser ptrUser = tData->ptrGameSetup->ptrUsersAtivosHeader;
     MsgBackEnd msgBackEnd;
     msgBackEnd.tipoMensagem = tipo_start_game;
@@ -38,12 +41,14 @@ void begin(ThreadData *tData) {
         close(pipeJogador);
         ptrUser = ptrUser->next;
     }
+    pthread_mutex_unlock(&tData->ptrGameSetup->mutexJogadores);
 }
 
 void setPosicaoStart(ThreadData *tData) {
     MsgBackEnd msgBackEnd;
     msgBackEnd.tipoMensagem = tipo_posicoes_iniciais;
     int i = 0;
+    pthread_mutex_lock(&tData->ptrGameSetup->mutexJogadores);
     pUser ptrUser = tData->ptrGameSetup->ptrUsersAtivosHeader;
     pPosition ptrPosition = tData->ptrGameSetup->ptrMapa->ptrInicioHeader;
     while (ptrUser != NULL) {
@@ -51,29 +56,32 @@ void setPosicaoStart(ThreadData *tData) {
         ptrUser->ptrUserInfo->position->x = ptrPosition->x;
         ptrUser->ptrUserInfo->position->y = ptrPosition->y;
         // preencher a mensagem
-        strcpy(msgBackEnd.informacao.posicoesIniciais.username[i], ptrUser->username);
-        msgBackEnd.informacao.posicoesIniciais.x[i] = ptrPosition->x;
-        msgBackEnd.informacao.posicoesIniciais.y[i] = ptrPosition->y;
-        // passar ao próximo user
-        ptrUser = ptrUser->next;
-        ptrPosition = ptrPosition->next;
-        ++i;
-    }
-    ptrUser = tData->ptrGameSetup->ptrUsersAtivosHeader;
-    while (ptrUser != NULL) {
+        strcpy(msgBackEnd.informacao.posicoes.username, ptrUser->username);
+        msgBackEnd.informacao.posicoes.x = ptrPosition->x;
+        msgBackEnd.informacao.posicoes.y = ptrPosition->y;
         int pipeJogador = open(ptrUser->username, O_WRONLY);
         if (pipeJogador == -1) {
             perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
+            ptrUser = ptrUser->next;
+            ptrPosition = ptrPosition->next;
+            ++i;
             continue;
         }
         if (write(pipeJogador, &msgBackEnd, sizeof(msgBackEnd)) == -1) {
             perror("[ERRO] Erro ao escrever no pipe do jogador.\n");
             close(pipeJogador);
+            ptrUser = ptrUser->next;
+            ptrPosition = ptrPosition->next;
+            ++i;
             continue;
         }
         close(pipeJogador);
+        // passar ao próximo user
         ptrUser = ptrUser->next;
+        ptrPosition = ptrPosition->next;
+        ++i;
     }
+    pthread_mutex_unlock(&tData->ptrGameSetup->mutexJogadores);
 }
 
 void *threadTimers(void *arg) {
@@ -117,16 +125,28 @@ void *threadTimers(void *arg) {
                     close(pipeJogador);
                     usersAtivos = usersAtivos->next;
                 }
-                // enviar mensagem para os clientes
-                // verificar o nivel
             }
-            // é para rodar um turno
-
-
-            // verificar se existe um vencedor
-            // mexer um block
-            //decrementaUmSegundo();
-            tempoJogo--;
+            { // atualizar o tempo de jogo
+                MsgBackEnd msgAtualizaTempo;
+                msgAtualizaTempo.tipoMensagem = tipo_atualizar_tempo;
+                msgAtualizaTempo.informacao.atualizarTempo.tempoJogo = tempoJogo;
+                pUser usersAtivos = tData->ptrGameSetup->ptrUsersAtivosHeader;
+                while (usersAtivos != NULL) {
+                    int pipeJogador = open(usersAtivos->username, O_WRONLY);
+                    if (pipeJogador == -1) {
+                        perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
+                        continue;
+                    }
+                    if (write(pipeJogador, &msgAtualizaTempo, sizeof(msgAtualizaTempo)) == -1) {
+                        perror("[ERRO] Erro ao escrever no pipe do jogador.\n");
+                        close(pipeJogador);
+                        continue;
+                    }
+                    close(pipeJogador);
+                    usersAtivos = usersAtivos->next;
+                }
+                tempoJogo--;
+            }
         }
 
 
@@ -305,9 +325,12 @@ void *threadGerirFrontend(void *arg) {
                         if (strcmp(ptrUser->username, msgFrontEnd.informacao.movimento.username) == 0) {
                             switch (msgFrontEnd.informacao.movimento.direcao) {
                                 case 0403: // cima
-                                    if (ptrUser->ptrUserInfo->position->y - 1 <= MAPA_LINHAS && ptrUser->ptrUserInfo->position->y - 1 >= 0) {
+                                    if (ptrUser->ptrUserInfo->position->y - 1 <= MAPA_LINHAS &&
+                                        ptrUser->ptrUserInfo->position->y - 1 >= 0) {
                                         direction = 'y';
-                                        if (checkIfPositionAvailable(tData, ptrUser->ptrUserInfo->position->y - 1, msgFrontEnd.informacao.movimento.username, direction)) {
+                                        if (checkIfPositionAvailable(tData, ptrUser->ptrUserInfo->position->y - 1,
+                                                                     msgFrontEnd.informacao.movimento.username,
+                                                                     direction)) {
                                             pthread_mutex_lock(&tData->trinco);
                                             ptrUser->ptrUserInfo->position->y--;
                                             pthread_mutex_unlock(&tData->trinco);
@@ -316,9 +339,12 @@ void *threadGerirFrontend(void *arg) {
                                     }
                                     break;
                                 case 0402: // baixo
-                                    if (ptrUser->ptrUserInfo->position->y + 1 <= MAPA_LINHAS && ptrUser->ptrUserInfo->position->y + 1 >= 0) {
+                                    if (ptrUser->ptrUserInfo->position->y + 1 <= MAPA_LINHAS &&
+                                        ptrUser->ptrUserInfo->position->y + 1 >= 0) {
                                         direction = 'y';
-                                        if (checkIfPositionAvailable(tData, ptrUser->ptrUserInfo->position->y + 1, msgFrontEnd.informacao.movimento.username, direction)) {
+                                        if (checkIfPositionAvailable(tData, ptrUser->ptrUserInfo->position->y + 1,
+                                                                     msgFrontEnd.informacao.movimento.username,
+                                                                     direction)) {
                                             pthread_mutex_lock(&tData->trinco);
                                             ptrUser->ptrUserInfo->position->y++;
                                             pthread_mutex_unlock(&tData->trinco);
@@ -327,9 +353,12 @@ void *threadGerirFrontend(void *arg) {
                                     }
                                     break;
                                 case 0404: // esquerda
-                                    if (ptrUser->ptrUserInfo->position->x - 1 <= MAPA_COLUNAS && ptrUser->ptrUserInfo->position->x - 1 >= 0) {
+                                    if (ptrUser->ptrUserInfo->position->x - 1 <= MAPA_COLUNAS &&
+                                        ptrUser->ptrUserInfo->position->x - 1 >= 0) {
                                         direction = 'x';
-                                        if (checkIfPositionAvailable(tData, ptrUser->ptrUserInfo->position->x - 1, msgFrontEnd.informacao.movimento.username, direction)) {
+                                        if (checkIfPositionAvailable(tData, ptrUser->ptrUserInfo->position->x - 1,
+                                                                     msgFrontEnd.informacao.movimento.username,
+                                                                     direction)) {
                                             pthread_mutex_lock(&tData->trinco);
                                             ptrUser->ptrUserInfo->position->x--;
                                             pthread_mutex_unlock(&tData->trinco);
@@ -338,9 +367,12 @@ void *threadGerirFrontend(void *arg) {
                                     }
                                     break;
                                 case 0405: // direita
-                                    if (ptrUser->ptrUserInfo->position->x + 1 <= MAPA_COLUNAS && ptrUser->ptrUserInfo->position->x + 1 >= 0) {
+                                    if (ptrUser->ptrUserInfo->position->x + 1 <= MAPA_COLUNAS &&
+                                        ptrUser->ptrUserInfo->position->x + 1 >= 0) {
                                         direction = 'x';
-                                        if (checkIfPositionAvailable(tData, ptrUser->ptrUserInfo->position->x + 1, msgFrontEnd.informacao.movimento.username, direction)) {
+                                        if (checkIfPositionAvailable(tData, ptrUser->ptrUserInfo->position->x + 1,
+                                                                     msgFrontEnd.informacao.movimento.username,
+                                                                     direction)) {
                                             pthread_mutex_lock(&tData->trinco);
                                             ptrUser->ptrUserInfo->position->x++;
                                             pthread_mutex_unlock(&tData->trinco);
