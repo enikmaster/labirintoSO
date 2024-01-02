@@ -30,6 +30,8 @@ void fecharJogo(GameSetup *);
 
 void sigHandler(int);
 
+bool checkIfPositionAvailable(ThreadData *, int, char *, char);
+
 // meta 1
 void desenhaMapa(char[MAPA_LINHAS][MAPA_COLUNAS]);
 

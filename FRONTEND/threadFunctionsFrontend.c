@@ -98,6 +98,22 @@ void apagaUserDoMapa(ThreadDataFrontend *tData, char *username) {
     wrefresh(tData->janelaMapa);
 }
 
+void adicionaUserNoMapa(ThreadDataFrontend *tData, char *username, char identificador, int newX, int newY) {
+    pUserInfo user = tData->ptrGameInfo->ptrOtherUsersHeader;
+    while (user != NULL) {
+        if (strcmp(user->username, username) == 0) break;
+        user = user->next;
+    }
+    if (user == NULL) return;
+    pthread_mutex_lock(&tData->trinco);
+    user->position->x = newX;
+    user->position->y = newY;
+    user->identificador = identificador;
+    pthread_mutex_unlock(&tData->trinco);
+    mvwaddch(tData->janelaMapa, user->position->y, user->position->x, user->identificador);
+    wrefresh(tData->janelaMapa);
+}
+
 void removeUser(ThreadDataFrontend *tData, char *username) {
     pthread_mutex_lock(&tData->trinco);
     pUserInfo users = tData->ptrGameInfo->ptrOtherUsersHeader;
@@ -268,6 +284,12 @@ void *threadGerirBackend(void *arg) {
                 wrefresh(tData->janelaMapa);
                 break;
             case tipo_atualizar:
+                apagaUserDoMapa(tData, msgBackEnd.informacao.atualizar.username);
+                adicionaUserNoMapa(tData, msgBackEnd.informacao.atualizar.username,
+                                      msgBackEnd.informacao.atualizar.identificador,
+                                   msgBackEnd.informacao.atualizar.x,
+                                   msgBackEnd.informacao.atualizar.y);
+                wrefresh(tData->janelaMapa);
                 break;
             case tipo_start_game:
                 adicionaNivel(tData, msgBackEnd.informacao.startGame.nivel);

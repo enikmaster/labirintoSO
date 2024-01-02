@@ -47,7 +47,7 @@ struct TipoInscricao {
 typedef struct TipoMovimento TipoMovimento;
 struct TipoMovimento {
     char username[TAMANHO_NAMES];
-    int movimento; // movimento do jogador (int)
+    int direcao; // movimento do jogador (int)
 };
 
 typedef struct TipoInformacao TipoInformacao; // quando o user pede a lista de jogadores ativos
@@ -137,11 +137,20 @@ struct TipoRemoveBlock {
     char origem[TAMANHO_NAMES]; // nome da origem (neste caso servidor)
 };
 
+//  - Position - dados sobre a posição de um elemento
+typedef struct Position Position, *pPosition;
+struct Position {
+    int x;
+    int y;
+    pPosition next;
+};
+
 typedef struct TipoAtualizar TipoAtualizar;
 struct TipoAtualizar {
-    char origem[TAMANHO_NAMES]; // nome da origem (neste caso servidor)
-    char mapa[MAPA_LINHAS][MAPA_COLUNAS]; // mapa do jogo
-    char mensagem[TAMANHO_CONTEUDO]; // mensagem do jogador
+    char username[TAMANHO_NAMES]; // user que se mexeu
+    char identificador; // identificador do user
+    int x;
+    int y;
 };
 
 typedef struct TipoStartGame TipoStartGame;
@@ -179,6 +188,7 @@ struct MsgBackEnd {
         TipoStartGame startGame;
         TipoTerminar terminar;
         TipoPosicoesIniciais posicoesIniciais;
+        TipoAtualizar atualizar;
     } informacao;
 };
 
@@ -188,13 +198,7 @@ typedef struct {
     int tempoJogo;
     int nivel;
 } Mensagem;
-//  - Position - dados sobre a posição de um elemento
-typedef struct Position Position, *pPosition;
-struct Position {
-    int x;
-    int y;
-    pPosition next;
-};
+
 //  - User - dados sobre um utilizador
 typedef struct UserInfo UserInfo, *pUserInfo;
 struct UserInfo {
