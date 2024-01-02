@@ -130,6 +130,6 @@ int main(int argc, char *argv[]) {
     }
     // fechar o pipe do servidor
     unlink(SRV_FIFO);
-    fecharJogo(&gameSetup); // esta é a última coisa a fazer antes de sair
+    fecharJogo(&gameSetup);
     exit(0);
 }

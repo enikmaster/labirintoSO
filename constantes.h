@@ -91,7 +91,8 @@ typedef enum {
     tipo_atualizar,
     tipo_start_game,
     tipo_terminar,
-    tipo_posicoes_iniciais
+    tipo_posicoes_iniciais,
+    tipo_atualizar_tempo
 } TipoBackEnd;
 
 // definir aqui os tipos de mensagem de retorno
@@ -168,9 +169,14 @@ struct TipoTerminar {
 
 typedef struct TipoPosicoesIniciais TipoPosicoesIniciais;
 struct TipoPosicoesIniciais {
-    char username[MAX_USERS][TAMANHO_NAMES];
-    int x[MAX_USERS];
-    int y[MAX_USERS];
+    char username[TAMANHO_NAMES];
+    int x;
+    int y;
+};
+
+typedef struct TipoAtualizarTempo TipoAtualizarTempo;
+struct TipoAtualizarTempo {
+    long int tempoJogo;
 };
 
 typedef struct MsgBackEnd MsgBackEnd;
@@ -187,17 +193,11 @@ struct MsgBackEnd {
         TipoTerminarPrograma terminarPrograma;
         TipoStartGame startGame;
         TipoTerminar terminar;
-        TipoPosicoesIniciais posicoesIniciais;
+        TipoPosicoesIniciais posicoes;
         TipoAtualizar atualizar;
+        TipoAtualizarTempo atualizarTempo;
     } informacao;
 };
-
-//  - Mensagem - estrutura de dados a passar a cada utilizador
-typedef struct {
-    char mapa[MAPA_LINHAS][MAPA_COLUNAS]; // para desenhar o mapa no cliente
-    int tempoJogo;
-    int nivel;
-} Mensagem;
 
 //  - User - dados sobre um utilizador
 typedef struct UserInfo UserInfo, *pUserInfo;
@@ -296,6 +296,7 @@ struct ThreadDataFrontend {
     WINDOW *janelaLogs;
     GameInfoFrontend *ptrGameInfo;
     pthread_mutex_t trinco;
+    pthread_mutex_t trincoMapa;
 };
 
 typedef struct ThreadData ThreadData, *pThreadData;

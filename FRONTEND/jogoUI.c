@@ -36,7 +36,8 @@ int main(int argc, char *argv[]) {
             .janelaComandos = NULL,
             .janelaTempoNivel = NULL,
             .ptrGameInfo = &gameInfoFrontend,
-            .trinco = PTHREAD_MUTEX_INITIALIZER
+            .trinco = PTHREAD_MUTEX_INITIALIZER,
+            .trincoMapa = PTHREAD_MUTEX_INITIALIZER
     };
 
     initscr();
