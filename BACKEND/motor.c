@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
         fecharJogo(&gameSetup);
         exit(-1);
     }
-    MsgFrontEnd terminarPrograma = {
+    MsgBackEnd terminarPrograma = {
             .tipoMensagem = tipo_terminar,
     };
     strcpy(terminarPrograma.informacao.terminarPrograma.username, "motor");
