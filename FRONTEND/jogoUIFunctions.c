@@ -88,14 +88,9 @@ void desenhaMapa(WINDOW *janela, int tipo) {
 
 void trataTeclado(ThreadDataFrontend *tData) {
     keypad(tData->janelaMapa, TRUE);
-    //wmove(tData->janelaMapa, 1, 1);
     int tecla = wgetch(tData->janelaMapa);
     char comando[100];
-    //nodelay(tData->janelaMapa, TRUE);
     while (!tData->continua && tecla != 113) {
-        //if (tecla == ERR) {
-        //    continue;
-        //} else
         if (tecla == KEY_UP) {
             // envia mensagem ao servidor
             // comandoUp(KEY_UP);
@@ -139,12 +134,10 @@ void trataTeclado(ThreadDataFrontend *tData) {
                 case -1:
                     break;
             }
+            if (tecla == 113) continue;
             wrefresh(tData->janelaComandos);
         }
-        //wmove(tData->janelaMapa, 1, 1);
-        //wrefresh(tData->janelaMapa);
-        if (tecla != 113)
-            tecla = wgetch(tData->janelaMapa);
+        tecla = wgetch(tData->janelaMapa);
     }
 }
 
@@ -172,15 +165,15 @@ void fecharBlocks(pBlock ptrBlocksHeader) {
     }
 }
 
-void fecharThisUser(pUser *ptrThisUser) {
-    free((*ptrThisUser)->ptrUserInfo->position);
-    free((*ptrThisUser)->ptrUserInfo);
-    free((*ptrThisUser));
-    *ptrThisUser = NULL;
-}
-
 void fecharUsers(pUser ptrThisUser, pUserInfo ptrOtherUsersHeader) {
-    if (ptrThisUser != NULL) fecharThisUser(&ptrThisUser);
+    if (ptrThisUser != NULL) {
+        free(ptrThisUser->ptrUserInfo->position);
+        ptrThisUser->ptrUserInfo->position = NULL;
+        free(ptrThisUser->ptrUserInfo);
+        ptrThisUser->ptrUserInfo = NULL;
+        free(ptrThisUser);
+        ptrThisUser = NULL;
+    }
     if (ptrOtherUsersHeader == NULL) return;
     pUserInfo libertaUserInfo;
     pPosition libertaPosicao;
@@ -189,6 +182,7 @@ void fecharUsers(pUser ptrThisUser, pUserInfo ptrOtherUsersHeader) {
         libertaPosicao = libertaUserInfo->position;
         ptrOtherUsersHeader = ptrOtherUsersHeader->next;
         free(libertaPosicao);
+        
         free(libertaUserInfo);
     }
 }
@@ -201,5 +195,5 @@ void fecharCliente(GameInfoFrontend *game) {
     // liberta a memória dos users
     fecharUsers(game->ptrThisUser, game->ptrOtherUsersHeader);
     // liberta a memória do jogo em si
-    free(game);
+
 }

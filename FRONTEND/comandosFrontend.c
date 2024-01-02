@@ -31,7 +31,8 @@ int comandoPlayers(ThreadDataFrontend *tData) {
 }
 
 int comandoExit(ThreadDataFrontend *tData) {
-
+    mvwaddstr(tData->janelaLogs, 1, 1, "Por favor carrega numa tecla para sair.");
+    wrefresh(tData->janelaLogs);
     MsgFrontEnd msgFrontEnd;
     msgFrontEnd.tipoMensagem = tipo_terminar_programa;
     strcpy(msgFrontEnd.informacao.terminarPrograma.username, tData->ptrGameInfo->ptrThisUser->username);

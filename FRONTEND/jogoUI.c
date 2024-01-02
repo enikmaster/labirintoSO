@@ -90,24 +90,24 @@ int main(int argc, char *argv[]) {
     int forceExit = open(SRV_FIFO, O_WRONLY);
     if (forceExit == -1) {
         perror("[ERRO] Erro ao abrir o pipe do servidor.\n");
+        pthread_mutex_destroy(&tData.trinco);
         fecharCliente(&gameInfoFrontend);
+        unlink(argv[1]);
         exit(-1);
     }
-    MsgBackEnd terminarPrograma = {
+    MsgFrontEnd terminarPrograma = {
             .tipoMensagem = tipo_terminar_programa
     };
     strcpy(terminarPrograma.informacao.terminarPrograma.username, "motor");
     if (write(forceExit, &terminarPrograma, sizeof(terminarPrograma)) == -1) {
         perror("[ERRO] Erro ao escrever no pipe do servidor.\n");
         close(forceExit);
+        pthread_mutex_destroy(&tData.trinco);
         fecharCliente(&gameInfoFrontend);
+        unlink(argv[1]);
         exit(-1);
     }
-    if (pthread_join(threadGerirBackendId, NULL) != 0) {
-        perror("[ERRO] Erro ao esperar pela thread da comunicação do backend.\n");
-        fecharCliente(&gameInfoFrontend);
-        exit(-1);
-    }
+
     pthread_mutex_destroy(&tData.trinco);
     fecharCliente(&gameInfoFrontend);
     unlink(argv[1]);

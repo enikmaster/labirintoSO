@@ -216,7 +216,6 @@ int comandoEnd(GameSetup *gameSetup) {
 }
 
 int comandoKick(GameSetup *gameSetup, char *username) {
-    // TODO: enviar mensagem ao cliente a dizer que foi kickado
     pUser ptrUser, ptrUserAnterior;
     if (gameSetup->usersAtivos == 0) {
         printf("[INFO] Não existem jogadores ativos.\n");
@@ -253,6 +252,7 @@ int comandoKick(GameSetup *gameSetup, char *username) {
             close(pipeJogador);
 
             if (strcmp(usernameNomalized, username) == 0) {
+                // TODO: mutexes
                 // mutex lock
 
                 (ptrUserAnterior == NULL)
@@ -263,7 +263,9 @@ int comandoKick(GameSetup *gameSetup, char *username) {
                        ptrUser->ptrUserInfo->identificador);
                 fflush(stdout);
                 free(ptrUser->ptrUserInfo->position);
+                ptrUser->ptrUserInfo->position = NULL;
                 free(ptrUser->ptrUserInfo);
+                ptrUser->ptrUserInfo = NULL;
                 free(ptrUser);
                 // mutex unlock
 
@@ -304,4 +306,3 @@ int comandoKick(GameSetup *gameSetup, char *username) {
     }
     return 0;
 }
-

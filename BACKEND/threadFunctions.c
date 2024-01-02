@@ -2,7 +2,6 @@
 #include "motor.h"
 
 // cenas do timer
-
 long int setTempoJogo(ThreadData *tData) {
     long int tempoJogo;
     if (tData->ptrGameSetup->nivel == 1) {
@@ -43,6 +42,7 @@ void begin(ThreadData *tData) {
 
 void setPosicaoStart(ThreadData *tData) {
     MsgBackEnd msgBackEnd;
+    msgBackEnd.tipoMensagem = tipo_posicoes_iniciais;
     int i = 0;
     pUser ptrUser = tData->ptrGameSetup->ptrUsersAtivosHeader;
     pPosition ptrPosition = tData->ptrGameSetup->ptrMapa->ptrInicioHeader;
@@ -51,7 +51,6 @@ void setPosicaoStart(ThreadData *tData) {
         ptrUser->ptrUserInfo->position->x = ptrPosition->x;
         ptrUser->ptrUserInfo->position->y = ptrPosition->y;
         // preencher a mensagem
-        msgBackEnd.tipoMensagem = tipo_posicoes_iniciais;
         strcpy(msgBackEnd.informacao.posicoesIniciais.username[i], ptrUser->username);
         msgBackEnd.informacao.posicoesIniciais.x[i] = ptrPosition->x;
         msgBackEnd.informacao.posicoesIniciais.y[i] = ptrPosition->y;
@@ -73,6 +72,7 @@ void setPosicaoStart(ThreadData *tData) {
             continue;
         }
         close(pipeJogador);
+        ptrUser = ptrUser->next;
     }
 }
 
@@ -93,32 +93,40 @@ void *threadTimers(void *arg) {
                     tempoJogo = setTempoJogo(tData);
                     begin(tData);
                     setPosicaoStart(tData);
-                    if (tData->ptrGameSetup->ptrMapa->ptrBlocksHeader != NULL) {
-                        // TODO: enviar mensagem com os blocks, para todos os users
-                    }
-                    if (tData->ptrGameSetup->ptrMapa->ptrRocksHeader != NULL) {
-                        // TODO: enviar mensagem com os rocks, para todos os users
-                    }
                 }
             }
             pthread_mutex_unlock(&tData->ptrGameSetup->mutexJogadores);
         } else { // jogo a decorrer
-            tempoJogo--;
             // verificar se o tempo de jogo chegou ao fim
-            if (tempoJogo <= 0) { // é para terminar / passar de nível
-
-                // verificar o nivel
+            if (tempoJogo <= 0) { // é para terminar (não há vencedor)
                 tData->ptrGameSetup->jogoAtivo = false;
+                MsgBackEnd msgBackEnd;
+                msgBackEnd.tipoMensagem = tipo_terminar;
+                pUser usersAtivos = tData->ptrGameSetup->ptrUsersAtivosHeader;
+                while (usersAtivos != NULL) {
+                    int pipeJogador = open(usersAtivos->username, O_WRONLY);
+                    if (pipeJogador == -1) {
+                        perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
+                        continue;
+                    }
+                    if (write(pipeJogador, &msgBackEnd, sizeof(msgBackEnd)) == -1) {
+                        perror("[ERRO] Erro ao escrever no pipe do jogador.\n");
+                        close(pipeJogador);
+                        continue;
+                    }
+                    close(pipeJogador);
+                    usersAtivos = usersAtivos->next;
+                }
                 // enviar mensagem para os clientes
-                // enviar mensagem para o servidor
-                // enviar mensagem para o motor
-            } else { // é paar rodar um turno
-
+                // verificar o nivel
             }
+            // é para rodar um turno
+
 
             // verificar se existe um vencedor
             // mexer um block
             //decrementaUmSegundo();
+            tempoJogo--;
         }
 
 
@@ -298,9 +306,6 @@ void *threadGerirFrontend(void *arg) {
                         perror("[ERRO] Erro ao abrir o pipe do jogador.\n");
                         continue;
                     }
-                    // get lista de users ativos
-                    // meter isso no array no tipoMensagem
-                    // enviar para o jogador
 
                     MsgBackEnd msgBackEnd;
                     msgBackEnd.tipoMensagem = tipo_retorno_players;
@@ -386,6 +391,7 @@ void *threadGerirFrontend(void *arg) {
             case tipo_terminar_programa:
                 if (true) {
                     // codigo para o tirar da lista
+                    pthread_mutex_lock(&tData->ptrGameSetup->mutexJogadores);
                     pUser ptrUser = tData->ptrGameSetup->ptrUsersAtivosHeader;
                     pUser ptrUserAnterior = NULL;
                     while (ptrUser != NULL) {
@@ -396,7 +402,9 @@ void *threadGerirFrontend(void *arg) {
                                 ptrUserAnterior->next = ptrUser->next;
                             }
                             free(ptrUser->ptrUserInfo->position);
+                            ptrUser->ptrUserInfo->position = NULL;
                             free(ptrUser->ptrUserInfo);
+                            ptrUser->ptrUserInfo = NULL;
                             free(ptrUser);
                             tData->ptrGameSetup->usersAtivos--;
                             break;
@@ -404,6 +412,7 @@ void *threadGerirFrontend(void *arg) {
                         ptrUserAnterior = ptrUser;
                         ptrUser = ptrUser->next;
                     }
+                    pthread_mutex_unlock(&tData->ptrGameSetup->mutexJogadores);
 
                     MsgBackEnd msgBackEnd;
                     msgBackEnd.tipoMensagem = tipo_retorno_logout;
@@ -411,6 +420,7 @@ void *threadGerirFrontend(void *arg) {
                            msgFrontEnd.informacao.terminarPrograma.username);
 
                     // avisar todos os outros jogadores de que este jogador saiu
+                    pthread_mutex_lock(&tData->ptrGameSetup->mutexJogadores);
                     ptrUser = tData->ptrGameSetup->ptrUsersAtivosHeader;
                     while (ptrUser != NULL) {
                         int pipeJogador = open(ptrUser->username, O_WRONLY);
@@ -427,9 +437,8 @@ void *threadGerirFrontend(void *arg) {
                         close(pipeJogador);
                         ptrUser = ptrUser->next;
                     }
+                    pthread_mutex_unlock(&tData->ptrGameSetup->mutexJogadores);
                 }
-                break;
-            case tipo_terminar:
                 break;
         }
 
@@ -437,14 +446,3 @@ void *threadGerirFrontend(void *arg) {
     close(serverPipe);
     pthread_exit(NULL);
 }
-
-
-
-// TODO: uma função para enviar uma mensagem a todos os clientes com as informações do jogo
-
-// TODO: uma função para enviar uma mendagem a todos os clientes com o mapa atualizado
-
-// TODO: 3 Threads
-//  1 - thread para lidar com coisas temporais (tempo de jogo, tempo de inscrição, tempo de decremento, etc)
-//  2 - thread para lidar com os comandos dos clientes (jogadores): quando um user faz um movimento, a posição do user é atualizada no mapa e é enviado a todos os clientes
-//  3 - thread para lidar com os comandos do servidor (administração do jogo)

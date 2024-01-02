@@ -35,7 +35,6 @@ typedef enum {
     tipo_movimento,
     tipo_informacao,
     tipo_mensagem,
-    tipo_terminar,
     tipo_terminar_programa
 } TipoFrontEnd;
 
@@ -64,11 +63,6 @@ struct TipoMensagem {
     char mensagem[TAMANHO_CONTEUDO]; // mensagem do jogador
 };
 
-typedef struct TipoTerminar TipoTerminar;
-struct TipoTerminar {
-    char username[TAMANHO_NAMES];
-};
-
 typedef struct TipoTerminarPrograma TipoTerminarPrograma;
 struct TipoTerminarPrograma {
     char username[TAMANHO_NAMES]; // nome da origem (neste caso servidor)
@@ -82,7 +76,6 @@ struct MsgFrontEnd {
         TipoMovimento movimento;
         TipoInformacao informacao;
         TipoMensagem mensagem;
-        TipoTerminar terminar;
         TipoTerminarPrograma terminarPrograma;
     } informacao;
 };
@@ -97,6 +90,7 @@ typedef enum {
     tipo_remove_block,
     tipo_atualizar,
     tipo_start_game,
+    tipo_terminar,
     tipo_posicoes_iniciais
 } TipoBackEnd;
 
@@ -105,7 +99,6 @@ typedef struct TipoRetornoInscricao TipoRetornoInscricao;
 struct TipoRetornoInscricao {
     char origem[TAMANHO_NAMES];
     char mensagem[TAMANHO_CONTEUDO]; // mensagem do jogador
-    //char mapa[MAPA_LINHAS][MAPA_COLUNAS]; // mapa do jogo
 };
 
 typedef struct TipoRetornoPlayers TipoRetornoPlayers;
@@ -131,7 +124,6 @@ typedef struct TipoRetornoKick TipoRetornoKick;
 struct TipoRetornoKick {
     char username[TAMANHO_NAMES];
 };
-
 
 typedef struct TipoBlock TipoBlock;
 struct TipoBlock {
@@ -160,6 +152,11 @@ struct TipoStartGame {
     int nivel;
 };
 
+typedef struct TipoTerminar TipoTerminar;
+struct TipoTerminar {
+    char username[TAMANHO_NAMES];
+};
+
 typedef struct TipoPosicoesIniciais TipoPosicoesIniciais;
 struct TipoPosicoesIniciais {
     char username[MAX_USERS][TAMANHO_NAMES];
@@ -180,6 +177,7 @@ struct MsgBackEnd {
         TipoRemoveBlock removeBlock;
         TipoTerminarPrograma terminarPrograma;
         TipoStartGame startGame;
+        TipoTerminar terminar;
         TipoPosicoesIniciais posicoesIniciais;
     } informacao;
 };
